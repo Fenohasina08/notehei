@@ -1,7 +1,0 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
-CREATE TYPE exam_type AS ENUM (
-    'CONTINUOUS_ASSESSMENT',
-    'FINAL_EXAM',
-    'RETAKE'
-);
