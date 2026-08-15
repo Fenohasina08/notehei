@@ -1,4 +1,3 @@
 package com.example.demo.mapper;
 
-public class AdminMapper {
-}
+public class AdminMapper {}
