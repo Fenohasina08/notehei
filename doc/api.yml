@@ -1,0 +1,26 @@
+openapi: 3.1.0
+info:
+  title: HEI Academic Records API
+  description: >
+    Shared contract for the HEI academic records management project.
+    Academic Structure & Administration Module (Valisoa): Security/Auth,
+    AcademicYear, Cohort, Semester, Program, Group, GroupMembership,
+    CourseUnit, Course, TeachingAssignment, Teacher, Admin.
+    Assessment & Transcripts Module (Fenohasina): Exam, Grade, GradeHistory,
+    Transcript.
+  version: 1.0.0
+servers:
+  - url: 'https://localhost:8080'
+
+security:
+  - bearerAuth: []
+
+paths:
+  /ping:
+    $ref: './security-api.yml#/paths/~1ping'
+  /auth/login:
+    $ref: './security-api.yml#/paths/~1auth~1login'
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: './security-api.yml#/components/securitySchemes/bearerAuth'

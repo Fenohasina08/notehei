@@ -1,0 +1,128 @@
+components:
+  schemas:
+    ErrorCode:
+      type: string
+      description: Stable, machine-readable business error code.
+      enum:
+        - VALIDATION_FAILED
+        - ACCESS_DENIED
+        - AUTH_REQUIRED
+        - AUTH_INVALID_CREDENTIALS
+        - AUTH_TOKEN_EXPIRED
+        - AUTH_TOKEN_INVALID
+        - INTERNAL_ERROR
+        - SEMESTER_CREDITS_INVALID
+        - COURSE_UNIT_MISSING_PROGRAM
+        - COURSE_UNIT_MISSING_COURSE
+        - COURSE_UNIT_COURSE_CREDITS_MISMATCH
+        - GROUP_PROGRAM_ALREADY_ACTIVE
+        - MATRICULE_FORMAT_INVALID
+        - MATRICULE_IMMUTABLE
+        - STUDENT_ALREADY_IN_ACTIVE_GROUP
+        - EXAM_PONDERATION_SUM_INVALID
+        - GRADE_ALREADY_EXISTS
+        - TEACHING_ASSIGNMENT_NOT_FOUND
+        - GRADE_VALUE_OUT_OF_RANGE
+        - GRADE_HISTORY_AUTHOR_MISSING
+        - TRANSCRIPT_ACCESS_DENIED
+        - STUDENT_NOT_FOUND
+        - TEACHER_NOT_FOUND
+        - GROUP_NOT_FOUND
+        - EXAM_NOT_FOUND
+        - EMAIL_ALREADY_USED
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          example: matricule
+        message:
+          type: string
+          example: must follow the STDyynnn format
+
+    ErrorResponse:
+      type: object
+      required: [timestamp, status, error, code, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 422
+        error:
+          type: string
+          description: Standard HTTP reason phrase.
+          example: Unprocessable Entity
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+          example: 'Semester S3 credit sum is 28, expected 30.'
+        path:
+          type: string
+          example: /api/semesters/9f1e2b3c-...
+        details:
+          type: array
+          description: Present only for field-level validation failures (400).
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+  responses:
+    BadRequest:
+      description: Malformed request or field-level validation failure (code VALIDATION_FAILED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: >
+        Missing, invalid or expired authentication token
+        (AUTH_REQUIRED | AUTH_INVALID_CREDENTIALS | AUTH_TOKEN_EXPIRED | AUTH_TOKEN_INVALID).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: >
+        Authenticated, but either the role is insufficient (ACCESS_DENIED) or
+        a fine-grained business ownership check failed
+        (e.g. TEACHING_ASSIGNMENT_NOT_FOUND, TRANSCRIPT_ACCESS_DENIED).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: The requested resource does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Conflict:
+      description: >
+        The request conflicts with the current state of the data
+        (duplicate, uniqueness, or invalid state transition).
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    UnprocessableEntity:
+      description: Well-formed request that violates a business rule.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Unexpected server error (code INTERNAL_ERROR). No stack trace is ever exposed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

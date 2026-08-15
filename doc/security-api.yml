@@ -1,0 +1,123 @@
+paths:
+  /ping:
+    get:
+      operationId: ping
+      summary: Health check
+      description: Public endpoint used to verify the API is reachable. No authentication required.
+      tags: [Security]
+      security: []
+      responses:
+        '200':
+          description: The API is up.
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+
+  /auth/login:
+    post:
+      operationId: login
+      summary: Authenticate a Student, Teacher or Admin account
+      description: >
+        Authenticates against one of the three account tables (Student,
+        Teacher, Admin) by email + password and returns a signed JWT plus the
+        resolved account type and role. The client does not need to know in
+        advance which table the account belongs to.
+      tags: [Security]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT issued by POST /auth/login. Must be sent as
+        `Authorization: Bearer {token}` on every protected route.
+        Stateless: no server-side session is kept for /api/** routes.
+
+  schemas:
+    AccountType:
+      type: string
+      enum: [STUDENT, TEACHER, ADMIN]
+      description: >
+        Which of the three account tables the authenticated user belongs to.
+        Student, Teacher and Admin are always separate tables, never merged
+        into a single User/Role table.
+
+    Role:
+      type: string
+      enum: [ROLE_STUDENT, ROLE_TEACHER, ROLE_ADMIN]
+      description: Authority granted to the authenticated user. Exactly one role per account.
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@hei.school
+        password:
+          type: string
+          format: password
+          minLength: 8
+
+    LoginResponse:
+      type: object
+      required: [token, accountType, role, expiresAt]
+      properties:
+        token:
+          type: string
+          description: Signed JWT bearer token.
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        role:
+          $ref: '#/components/schemas/Role'
+        expiresAt:
+          type: string
+          format: date-time
+          description: Token expiration instant.
+
+    JwtClaims:
+      type: object
+      description: >
+        Documentation-only: shape of the JWT payload issued by the API. Not
+        exposed as an HTTP schema, useful as a reference for JwtService.
+      properties:
+        sub:
+          type: string
+          format: uuid
+          description: Account id.
+        accountType:
+          $ref: '#/components/schemas/AccountType'
+        role:
+          $ref: '#/components/schemas/Role'
+        email:
+          type: string
+          format: email
+        iat:
+          type: integer
+          description: Issued-at (epoch seconds).
+        exp:
+          type: integer
+          description: Expiration (epoch seconds). Short-lived token, no refresh token in v1.
