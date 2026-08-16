@@ -7,6 +7,7 @@ import com.example.demo.mapper.AdminMapper;
 import com.example.demo.repository.AdminRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class AdminService {
 
   private final AdminRepository adminRepository;
+  private final PasswordEncoder passwordEncoder;
 
   public AdminResponseDTO create(CreateAdminDTO dto) {
 
@@ -21,12 +23,14 @@ public class AdminService {
       throw new IllegalArgumentException("Email already exists");
     }
 
+    String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
     JAdmin admin =
         JAdmin.builder()
             .firstName(dto.getFirstName())
             .lastName(dto.getLastName())
             .email(dto.getEmail())
-            .password(dto.getPassword())
+            .password(encodedPassword)
             .birthdate(dto.getBirthdate())
             .address(dto.getAddress())
             .build();

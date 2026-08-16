@@ -7,6 +7,7 @@ import com.example.demo.mapper.StudentMapper;
 import com.example.demo.repository.StudentRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,7 @@ public class StudentService {
 
   private final StudentRepository studentRepository;
   private final MatriculeGenerator matriculeGenerator;
+  private final PasswordEncoder passwordEncoder;
 
   public StudentResponseDTO create(CreateStudentDTO dto) {
 
@@ -24,12 +26,14 @@ public class StudentService {
 
     String matricule = matriculeGenerator.generateStudentMatricule();
 
+    String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
     JStudent student =
         JStudent.builder()
             .firstName(dto.getFirstName())
             .lastName(dto.getLastName())
             .email(dto.getEmail())
-            .password(dto.getPassword())
+            .password(encodedPassword)
             .birthdate(dto.getBirthdate())
             .address(dto.getAddress())
             .matricule(matricule)
