@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.AdminResponseDTO;
 import com.example.demo.dto.CreateAdminDTO;
 import com.example.demo.entity.JAdmin;
+import com.example.demo.exception.AdminNotFoundException;
+import com.example.demo.exception.EmailAlreadyUsedException;
 import com.example.demo.mapper.AdminMapper;
 import com.example.demo.repository.AdminRepository;
 import java.util.UUID;
@@ -20,7 +22,7 @@ public class AdminService {
   public AdminResponseDTO create(CreateAdminDTO dto) {
 
     if (adminRepository.existsByEmail(dto.getEmail())) {
-      throw new IllegalArgumentException("Email already exists");
+      throw new EmailAlreadyUsedException(dto.getEmail());
     }
 
     String encodedPassword = passwordEncoder.encode(dto.getPassword());
@@ -41,19 +43,14 @@ public class AdminService {
   }
 
   public AdminResponseDTO findById(UUID id) {
-    JAdmin admin =
-        adminRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+    JAdmin admin = adminRepository.findById(id).orElseThrow(() -> new AdminNotFoundException(id));
 
     return AdminMapper.toResponseDTO(admin);
   }
 
   public AdminResponseDTO findByEmail(String email) {
     JAdmin admin =
-        adminRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Admin not found"));
+        adminRepository.findByEmail(email).orElseThrow(() -> new AdminNotFoundException(email));
 
     return AdminMapper.toResponseDTO(admin);
   }

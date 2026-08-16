@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.CreateTeacherDTO;
 import com.example.demo.dto.TeacherResponseDTO;
 import com.example.demo.entity.JTeacher;
+import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.TeacherNotFoundException;
 import com.example.demo.mapper.TeacherMapper;
 import com.example.demo.repository.TeacherRepository;
 import java.util.UUID;
@@ -21,7 +23,7 @@ public class TeacherService {
   public TeacherResponseDTO create(CreateTeacherDTO dto) {
 
     if (teacherRepository.existsByEmail(dto.getEmail())) {
-      throw new IllegalArgumentException("Email already exists");
+      throw new EmailAlreadyUsedException(dto.getEmail());
     }
 
     String matricule = matriculeGenerator.generateTeacherMatricule();
@@ -46,18 +48,14 @@ public class TeacherService {
 
   public TeacherResponseDTO findById(UUID id) {
     JTeacher teacher =
-        teacherRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+        teacherRepository.findById(id).orElseThrow(() -> new TeacherNotFoundException(id));
 
     return TeacherMapper.toResponseDTO(teacher);
   }
 
   public TeacherResponseDTO findByEmail(String email) {
     JTeacher teacher =
-        teacherRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Teacher not found"));
+        teacherRepository.findByEmail(email).orElseThrow(() -> new TeacherNotFoundException(email));
 
     return TeacherMapper.toResponseDTO(teacher);
   }

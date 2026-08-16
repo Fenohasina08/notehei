@@ -3,6 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.CreateStudentDTO;
 import com.example.demo.dto.StudentResponseDTO;
 import com.example.demo.entity.JStudent;
+import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.repository.StudentRepository;
 import java.util.UUID;
@@ -21,7 +23,7 @@ public class StudentService {
   public StudentResponseDTO create(CreateStudentDTO dto) {
 
     if (studentRepository.existsByEmail(dto.getEmail())) {
-      throw new IllegalArgumentException("Email already exists");
+      throw new EmailAlreadyUsedException(dto.getEmail());
     }
 
     String matricule = matriculeGenerator.generateStudentMatricule();
@@ -46,18 +48,14 @@ public class StudentService {
 
   public StudentResponseDTO findById(UUID id) {
     JStudent student =
-        studentRepository
-            .findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+        studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
 
     return StudentMapper.toResponseDTO(student);
   }
 
   public StudentResponseDTO findByEmail(String email) {
     JStudent student =
-        studentRepository
-            .findByEmail(email)
-            .orElseThrow(() -> new IllegalArgumentException("Student not found"));
+        studentRepository.findByEmail(email).orElseThrow(() -> new StudentNotFoundException(email));
 
     return StudentMapper.toResponseDTO(student);
   }
