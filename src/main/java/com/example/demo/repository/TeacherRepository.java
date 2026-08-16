@@ -1,13 +1,13 @@
 package com.example.demo.repository;
 
-import com.example.demo.entity.JStudent;
+import com.example.demo.entity.JTeacher;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TeacherRepository extends JpaRepository<JStudent, UUID> {
+public interface TeacherRepository extends JpaRepository<JTeacher, UUID> {
 
-  Optional<JStudent> findByEmail(String email);
+  Optional<JTeacher> findByEmail(String email);
 
   boolean existsByEmail(String email);
 

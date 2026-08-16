@@ -16,10 +16,10 @@ import lombok.*;
 public class JAdmin {
   @Id @GeneratedValue private UUID id;
 
-  @Column(nullable = false)
+  @Column(name = "firstname", nullable = false)
   private String firstName;
 
-  @Column(nullable = false)
+  @Column(name = "lastname", nullable = false)
   private String lastName;
 
   @Column(nullable = false)
@@ -28,6 +28,7 @@ public class JAdmin {
   @Column(nullable = false)
   private String password;
 
+  @Column(name = "birth_date")
   private LocalDate birthdate;
 
   @Column(nullable = false)
