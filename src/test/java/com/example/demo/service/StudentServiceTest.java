@@ -7,6 +7,8 @@ import static org.mockito.Mockito.*;
 import com.example.demo.dto.CreateStudentDTO;
 import com.example.demo.dto.StudentResponseDTO;
 import com.example.demo.entity.JStudent;
+import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.repository.StudentRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -115,10 +117,11 @@ class StudentServiceTest {
   void create_shouldThrowExceptionWhenEmailAlreadyExists() {
     when(studentRepository.existsByEmail("john.doe@test.com")).thenReturn(true);
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> studentService.create(createStudentDTO));
+    EmailAlreadyUsedException exception =
+        assertThrows(
+            EmailAlreadyUsedException.class, () -> studentService.create(createStudentDTO));
 
-    assertEquals("Email already exists", exception.getMessage());
+    assertEquals("Email already in use: john.doe@test.com", exception.getMessage());
 
     verify(studentRepository).existsByEmail("john.doe@test.com");
     verify(studentRepository, never()).save(any());
@@ -149,10 +152,10 @@ class StudentServiceTest {
 
     when(studentRepository.findById(id)).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> studentService.findById(id));
+    StudentNotFoundException exception =
+        assertThrows(StudentNotFoundException.class, () -> studentService.findById(id));
 
-    assertEquals("Student not found", exception.getMessage());
+    assertEquals("No student found with id " + id, exception.getMessage());
 
     verify(studentRepository).findById(id);
   }
@@ -174,11 +177,11 @@ class StudentServiceTest {
   void findByEmail_shouldThrowExceptionWhenStudentNotFound() {
     when(studentRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
+    StudentNotFoundException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> studentService.findByEmail("unknown@test.com"));
+            StudentNotFoundException.class, () -> studentService.findByEmail("unknown@test.com"));
 
-    assertEquals("Student not found", exception.getMessage());
+    assertEquals("No student found with email unknown@test.com", exception.getMessage());
 
     verify(studentRepository).findByEmail("unknown@test.com");
   }
