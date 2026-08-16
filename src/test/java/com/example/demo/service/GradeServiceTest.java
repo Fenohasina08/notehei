@@ -117,7 +117,7 @@ class GradeServiceTest {
     when(gradeRepository.findByStudentIdAndExamId(studentId, finalExam.getId()))
         .thenReturn(Optional.of(gradeOf(bd("15.00"))));
     when(gradeRepository.findByStudentIdAndExamId(studentId, retakeExam.getId()))
-        .thenReturn(Optional.empty()); // étudiant n'a pas passé le rattrapage
+        .thenReturn(Optional.empty());
 
     var result = gradeService.computeRetainedGrade(studentId, courseId);
 
