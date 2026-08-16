@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AdminResponseDTO;
+import com.example.demo.dto.ChangePasswordDTO;
 import com.example.demo.dto.CreateAdminDTO;
 import com.example.demo.service.AdminService;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,5 +39,12 @@ public class AdminController {
   @GetMapping(params = "email")
   public ResponseEntity<AdminResponseDTO> findByEmail(@RequestParam String email) {
     return ResponseEntity.ok(adminService.findByEmail(email));
+  }
+
+  @PatchMapping("/{id}/password")
+  public ResponseEntity<Void> changePassword(
+      @PathVariable UUID id, @Valid @RequestBody ChangePasswordDTO dto) {
+    adminService.changePassword(id, dto);
+    return ResponseEntity.noContent().build();
   }
 }
