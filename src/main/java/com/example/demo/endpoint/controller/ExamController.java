@@ -17,33 +17,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
- @RestController
+@RestController
 @RequestMapping("/exams")
 @AllArgsConstructor
 public class ExamController {
 
-    private final ExamService examService;
+  private final ExamService examService;
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
-    public ResponseEntity<Exam> create(@RequestBody Exam exam) {
-        return new ResponseEntity<>(examService.createExam(exam), HttpStatus.CREATED);
-    }
+  @PostMapping
+  @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+  public ResponseEntity<Exam> create(@RequestBody Exam exam) {
+    return new ResponseEntity<>(examService.createExam(exam), HttpStatus.CREATED);
+  }
 
-    @GetMapping
-    public ResponseEntity<List<Exam>> listByCourse(@RequestParam UUID courseId) {
-        return ResponseEntity.ok(examService.getExamsForCourse(courseId));
-    }
+  @GetMapping
+  public ResponseEntity<List<Exam>> listByCourse(@RequestParam UUID courseId) {
+    return ResponseEntity.ok(examService.getExamsForCourse(courseId));
+  }
 
-    @GetMapping("/course/{courseId}/weighting-complete")
-    public ResponseEntity<Boolean> isWeightingComplete(@PathVariable UUID courseId) {
-        return ResponseEntity.ok(examService.isCourseWeightingComplete(courseId));
-    }
+  @GetMapping("/course/{courseId}/weighting-complete")
+  public ResponseEntity<Boolean> isWeightingComplete(@PathVariable UUID courseId) {
+    return ResponseEntity.ok(examService.isCourseWeightingComplete(courseId));
+  }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        examService.deleteExam(id);
-        return ResponseEntity.noContent().build();
-    }
+  @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> delete(@PathVariable UUID id) {
+    examService.deleteExam(id);
+    return ResponseEntity.noContent().build();
+  }
 }
