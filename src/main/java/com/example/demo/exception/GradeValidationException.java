@@ -1,4 +1,7 @@
 package com.example.demo.exception;
 
-public class Gradevaldae {
+public class GradeValidationException extends RuntimeException {
+  public GradeValidationException(String message) {
+    super(message);
+  }
 }
