@@ -31,5 +31,7 @@ public class FacadeIT {
     } catch (ClassNotFoundException e) {
       log.warn("EnvConf missing: no project-specific test env vars will be set");
     }
+
+    new PostgresConf().configureProperties(registry);
   }
 }
