@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.example.demo.dto.ChangePasswordDTO;
 import com.example.demo.dto.CreateStudentDTO;
 import com.example.demo.dto.StudentResponseDTO;
 import com.example.demo.entity.JStudent;
 import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.repository.StudentRepository;
 import java.sql.Timestamp;
@@ -184,5 +186,70 @@ class StudentServiceTest {
     assertEquals("No student found with email unknown@test.com", exception.getMessage());
 
     verify(studentRepository).findByEmail("unknown@test.com");
+  }
+
+  @Test
+  void changePassword_shouldEncodeAndSaveNewPasswordWhenOldPasswordMatches() {
+    UUID id = student.getId();
+
+    ChangePasswordDTO dto =
+        ChangePasswordDTO.builder()
+            .oldPassword("password123")
+            .newPassword("newPassword456")
+            .build();
+
+    when(studentRepository.findById(id)).thenReturn(Optional.of(student));
+    when(passwordEncoder.matches("password123", student.getPassword())).thenReturn(true);
+    when(passwordEncoder.encode("newPassword456")).thenReturn("$2a$10$newHashedPassword");
+
+    studentService.changePassword(id, dto);
+
+    ArgumentCaptor<JStudent> captor = ArgumentCaptor.forClass(JStudent.class);
+    verify(studentRepository).save(captor.capture());
+
+    assertEquals("$2a$10$newHashedPassword", captor.getValue().getPassword());
+
+    verify(passwordEncoder).matches("password123", "$2a$10$hashedPassword");
+    verify(passwordEncoder).encode("newPassword456");
+  }
+
+  @Test
+  void changePassword_shouldThrowExceptionWhenOldPasswordDoesNotMatch() {
+    UUID id = student.getId();
+
+    ChangePasswordDTO dto =
+        ChangePasswordDTO.builder()
+            .oldPassword("wrongPassword")
+            .newPassword("newPassword456")
+            .build();
+
+    when(studentRepository.findById(id)).thenReturn(Optional.of(student));
+    when(passwordEncoder.matches("wrongPassword", student.getPassword())).thenReturn(false);
+
+    assertThrows(InvalidCredentialsException.class, () -> studentService.changePassword(id, dto));
+
+    verify(studentRepository, never()).save(any());
+    verify(passwordEncoder, never()).encode(anyString());
+  }
+
+  @Test
+  void changePassword_shouldThrowExceptionWhenStudentNotFound() {
+    UUID id = UUID.randomUUID();
+
+    ChangePasswordDTO dto =
+        ChangePasswordDTO.builder()
+            .oldPassword("password123")
+            .newPassword("newPassword456")
+            .build();
+
+    when(studentRepository.findById(id)).thenReturn(Optional.empty());
+
+    StudentNotFoundException exception =
+        assertThrows(StudentNotFoundException.class, () -> studentService.changePassword(id, dto));
+
+    assertEquals("No student found with id " + id, exception.getMessage());
+
+    verify(passwordEncoder, never()).matches(anyString(), anyString());
+    verify(studentRepository, never()).save(any());
   }
 }

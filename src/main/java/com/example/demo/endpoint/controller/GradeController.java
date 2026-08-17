@@ -61,4 +61,10 @@ public class GradeController {
     var token = header.substring("Bearer ".length());
     return jwtService.extractUserId(token);
   }
+
+  private UUID extractUserId(HttpServletRequest request) {
+    var header = request.getHeader("Authorization");
+    var token = header.substring("Bearer ".length());
+    return jwtService.extractUserId(token);
+  }
 }
