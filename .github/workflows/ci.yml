@@ -8,10 +8,7 @@ on:
     branches:
       - '*'
   workflow_dispatch:
-
   workflow_call:
-
-
 
 jobs:
   test:
@@ -20,7 +17,7 @@ jobs:
 
     env:
       AWS_REGION: eu-west-3
-      
+      TESTCONTAINERS_RYUK_DISABLED: "true"
 
     steps:
       - uses: actions/checkout@v4.1.6
@@ -29,12 +26,13 @@ jobs:
         with:
           java-version: '21'
           distribution: 'corretto'
+
       - run: chmod +x gradlew
       - run: chmod +x .shell/publish_gen_to_maven_local.sh
-      - run: |
-          ./gradlew test
 
-      
+      - name: Run tests with clean and testcontainers fix
+        run: |
+          ./gradlew clean test
 
   format:
     runs-on: ubuntu-latest
