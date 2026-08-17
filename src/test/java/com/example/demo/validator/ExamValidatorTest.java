@@ -77,15 +77,6 @@ class ExamValidatorTest {
 
   @Test
   void retake_exams_bypass_the_100_percent_rule() {
-    when(examRepository.findByCourseId(courseId))
-        .thenReturn(
-            List.of(
-                JExam.builder()
-                    .courseId(courseId)
-                    .type(JExamType.FINAL_EXAM)
-                    .weighting(bd("100.00"))
-                    .build()));
-
     var retake =
         JExam.builder().courseId(courseId).type(JExamType.RETAKE).weighting(bd("100.00")).build();
 
