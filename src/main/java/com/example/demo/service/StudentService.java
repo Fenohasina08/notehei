@@ -1,9 +1,11 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ChangePasswordDTO;
 import com.example.demo.dto.CreateStudentDTO;
 import com.example.demo.dto.StudentResponseDTO;
 import com.example.demo.entity.JStudent;
 import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.repository.StudentRepository;
@@ -58,5 +60,17 @@ public class StudentService {
         studentRepository.findByEmail(email).orElseThrow(() -> new StudentNotFoundException(email));
 
     return StudentMapper.toResponseDTO(student);
+  }
+
+  public void changePassword(UUID id, ChangePasswordDTO dto) {
+    JStudent student =
+        studentRepository.findById(id).orElseThrow(() -> new StudentNotFoundException(id));
+
+    if (!passwordEncoder.matches(dto.getOldPassword(), student.getPassword())) {
+      throw new InvalidCredentialsException();
+    }
+
+    student.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    studentRepository.save(student);
   }
 }

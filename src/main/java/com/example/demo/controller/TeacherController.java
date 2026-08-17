@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ChangePasswordDTO;
 import com.example.demo.dto.CreateTeacherDTO;
 import com.example.demo.dto.TeacherResponseDTO;
 import com.example.demo.service.TeacherService;
@@ -8,7 +9,9 @@ import java.net.URI;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,5 +40,14 @@ public class TeacherController {
   @GetMapping(params = "email")
   public ResponseEntity<TeacherResponseDTO> findByEmail(@RequestParam String email) {
     return ResponseEntity.ok(teacherService.findByEmail(email));
+  }
+
+  @PreAuthorize(
+      "hasRole('ADMIN') or " + "(hasRole('TEACHER') and #id.equals(authentication.principal.id()))")
+  @PatchMapping("/{id}/password")
+  public ResponseEntity<Void> changePassword(
+      @PathVariable UUID id, @Valid @RequestBody ChangePasswordDTO dto) {
+    teacherService.changePassword(id, dto);
+    return ResponseEntity.noContent().build();
   }
 }

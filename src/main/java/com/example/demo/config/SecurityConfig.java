@@ -1,6 +1,8 @@
 package com.example.demo.config;
 
+import com.example.demo.security.CustomAccessDeniedHandler;
 import com.example.demo.security.JwtAuthenticationFilter;
+import com.example.demo.security.RestAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +21,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
+  private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+  private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -30,6 +34,11 @@ public class SecurityConfig {
     http.csrf(csrf -> csrf.disable())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .exceptionHandling(
+            exceptions ->
+                exceptions
+                    .authenticationEntryPoint(restAuthenticationEntryPoint)
+                    .accessDeniedHandler(customAccessDeniedHandler))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/auth/login")
@@ -40,9 +49,13 @@ public class SecurityConfig {
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/students", "/teachers")
                     .hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/students/{id}")
+                    .requestMatchers(HttpMethod.GET, "/students/**")
                     .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-                    .requestMatchers(HttpMethod.GET, "/students/**", "/teachers/**")
+                    .requestMatchers(HttpMethod.PATCH, "/students/**")
+                    .hasAnyRole("ADMIN", "STUDENT")
+                    .requestMatchers(HttpMethod.GET, "/teachers/**")
+                    .hasAnyRole("ADMIN", "TEACHER")
+                    .requestMatchers(HttpMethod.PATCH, "/teachers/**")
                     .hasAnyRole("ADMIN", "TEACHER")
                     .anyRequest()
                     .authenticated())
