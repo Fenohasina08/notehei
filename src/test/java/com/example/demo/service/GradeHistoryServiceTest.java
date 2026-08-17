@@ -7,11 +7,14 @@ import static org.mockito.Mockito.when;
 
 import com.example.demo.entity.JGrade;
 import com.example.demo.entity.JGradeHistory;
+import com.example.demo.entity.JTeacher;
 import com.example.demo.mapper.GradeHistoryMapper;
 import com.example.demo.repository.GradeHistoryRepository;
 import com.example.demo.repository.GradeRepository;
+import com.example.demo.repository.TeacherRepository;
 import com.example.demo.validator.GradeHistoryValidator;
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,7 @@ class GradeHistoryServiceTest {
 
   @Mock private GradeHistoryRepository gradeHistoryRepository;
   @Mock private GradeRepository gradeRepository;
+  @Mock private TeacherRepository teacherRepository;
   @Mock private GradeHistoryValidator gradeHistoryValidator;
 
   private final GradeHistoryMapper gradeHistoryMapper = new GradeHistoryMapper();
@@ -34,15 +38,26 @@ class GradeHistoryServiceTest {
   void setUp() {
     gradeHistoryService =
         new GradeHistoryService(
-            gradeHistoryRepository, gradeRepository, gradeHistoryValidator, gradeHistoryMapper);
+            gradeHistoryRepository,
+            gradeRepository,
+            teacherRepository,
+            gradeHistoryValidator,
+            gradeHistoryMapper);
   }
 
   @Test
   void records_modification_and_updates_the_grade_value() {
     var gradeId = UUID.randomUUID();
     var teacherId = UUID.randomUUID();
+    var teacherMatricule = "TCH26183";
+
+    var teacher = JTeacher.builder().id(teacherId).matricule(teacherMatricule).build();
+
     var grade = JGrade.builder().id(gradeId).value(new BigDecimal("10.00")).build();
-    when(gradeRepository.findById(gradeId)).thenReturn(java.util.Optional.of(grade));
+
+    when(teacherRepository.findById(teacherId)).thenReturn(Optional.of(teacher));
+
+    when(gradeRepository.findById(gradeId)).thenReturn(Optional.of(grade));
 
     var savedHistory =
         JGradeHistory.builder()
@@ -50,8 +65,9 @@ class GradeHistoryServiceTest {
             .gradeId(gradeId)
             .oldValue(new BigDecimal("10.00"))
             .newValue(new BigDecimal("14.00"))
-            .teacherId(teacherId)
+            .teacherMatricule(teacherMatricule)
             .build();
+
     when(gradeHistoryRepository.save(any(JGradeHistory.class))).thenReturn(savedHistory);
 
     var result =
@@ -59,9 +75,17 @@ class GradeHistoryServiceTest {
             gradeId, new BigDecimal("14.00"), "erreur de saisie", teacherId, null);
 
     assertThat(result.oldValue()).isEqualByComparingTo("10.00");
+
     assertThat(result.newValue()).isEqualByComparingTo("14.00");
-    verify(gradeHistoryValidator).validateExactlyOneAuthor(teacherId, null);
+
+    assertThat(result.teacherMatricule()).isEqualTo(teacherMatricule);
+
+    verify(teacherRepository).findById(teacherId);
+
+    verify(gradeHistoryValidator).validateExactlyOneAuthor(teacherMatricule, null);
+
     verify(gradeRepository).save(grade);
+
     assertThat(grade.getValue()).isEqualByComparingTo("14.00");
   }
 }

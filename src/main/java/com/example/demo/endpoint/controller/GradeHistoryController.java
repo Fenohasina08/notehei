@@ -35,7 +35,9 @@ public class GradeHistoryController {
       @RequestBody ModificationRequest request,
       HttpServletRequest httpRequest,
       Authentication authentication) {
+
     var userId = extractUserId(httpRequest);
+
     var isTeacher =
         authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));

@@ -33,8 +33,10 @@ class GradeValidatorTest {
     var teacherId = UUID.randomUUID();
     var courseId = UUID.randomUUID();
     var examId = UUID.randomUUID();
+
     when(examRepository.findById(examId))
         .thenReturn(Optional.of(JExam.builder().id(examId).courseId(courseId).build()));
+
     when(teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, courseId))
         .thenReturn(true);
 
@@ -46,8 +48,10 @@ class GradeValidatorTest {
     var teacherId = UUID.randomUUID();
     var courseId = UUID.randomUUID();
     var examId = UUID.randomUUID();
+
     when(examRepository.findById(examId))
         .thenReturn(Optional.of(JExam.builder().id(examId).courseId(courseId).build()));
+
     when(teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, courseId))
         .thenReturn(false);
 
@@ -58,10 +62,10 @@ class GradeValidatorTest {
 
   @Test
   void rejects_when_both_teacher_and_admin_are_set() {
-    var teacherId = UUID.randomUUID();
+    var teacherMatricule = "TEACH001";
     var adminId = UUID.randomUUID();
 
-    assertThatThrownBy(() -> gradeValidator.validateExactlyOneAuthor(teacherId, adminId))
+    assertThatThrownBy(() -> gradeValidator.validateExactlyOneAuthor(teacherMatricule, adminId))
         .isInstanceOf(GradeValidationException.class);
   }
 

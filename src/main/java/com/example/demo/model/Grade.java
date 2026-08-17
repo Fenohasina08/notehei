@@ -6,10 +6,10 @@ import java.util.UUID;
 
 public record Grade(
     UUID id,
-    UUID studentId,
+    String studentMatricule,
     UUID examId,
     BigDecimal value,
     String status,
     LocalDateTime enteredAt,
-    UUID teacherId,
+    String teacherMatricule,
     UUID adminId) {}

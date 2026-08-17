@@ -31,6 +31,7 @@ public class GradeController {
   public ResponseEntity<Grade> createByTeacher(
       @RequestBody Grade grade, HttpServletRequest request) {
     var teacherId = extractUserId(request);
+
     return new ResponseEntity<>(
         gradeService.createGradeByTeacher(grade, teacherId), HttpStatus.CREATED);
   }
@@ -39,19 +40,20 @@ public class GradeController {
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Grade> createByAdmin(@RequestBody Grade grade, HttpServletRequest request) {
     var adminId = extractUserId(request);
+
     return new ResponseEntity<>(
         gradeService.createGradeByAdmin(grade, adminId), HttpStatus.CREATED);
   }
 
-  @GetMapping("/student/{studentId}")
-  public ResponseEntity<List<Grade>> listForStudent(@PathVariable UUID studentId) {
-    return ResponseEntity.ok(gradeService.getGradesForStudent(studentId));
+  @GetMapping("/student/{studentMatricule}")
+  public ResponseEntity<List<Grade>> listForStudent(@PathVariable String studentMatricule) {
+    return ResponseEntity.ok(gradeService.getGradesForStudent(studentMatricule));
   }
 
-  @GetMapping("/student/{studentId}/course/{courseId}/average")
+  @GetMapping("/student/{studentMatricule}/course/{courseId}/average")
   public ResponseEntity<BigDecimal> retainedGrade(
-      @PathVariable UUID studentId, @PathVariable UUID courseId) {
-    return ResponseEntity.ok(gradeService.computeRetainedGrade(studentId, courseId));
+      @PathVariable String studentMatricule, @PathVariable UUID courseId) {
+    return ResponseEntity.ok(gradeService.computeRetainedGrade(studentMatricule, courseId));
   }
 
   private UUID extractUserId(HttpServletRequest request) {

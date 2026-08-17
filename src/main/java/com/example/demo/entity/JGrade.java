@@ -28,8 +28,8 @@ public class JGrade {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(name = "student_id", nullable = false)
-  private UUID studentId;
+  @Column(name = "student_matricule", nullable = false, length = 20)
+  private String studentMatricule;
 
   @Column(name = "exam_id", nullable = false)
   private UUID examId;
@@ -43,8 +43,8 @@ public class JGrade {
   @Column(name = "entered_at", nullable = false)
   private LocalDateTime enteredAt;
 
-  @Column(name = "teacher_id")
-  private UUID teacherId;
+  @Column(name = "teacher_matricule", length = 20)
+  private String teacherMatricule;
 
   @Column(name = "admin_id")
   private UUID adminId;

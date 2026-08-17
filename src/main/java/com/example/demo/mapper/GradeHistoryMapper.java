@@ -15,7 +15,7 @@ public class GradeHistoryMapper {
         .newValue(dto.newValue())
         .reason(dto.reason())
         .modifiedAt(dto.modifiedAt())
-        .teacherId(dto.teacherId())
+        .teacherMatricule(dto.teacherMatricule())
         .adminId(dto.adminId())
         .build();
   }
@@ -28,7 +28,7 @@ public class GradeHistoryMapper {
         entity.getNewValue(),
         entity.getReason(),
         entity.getModifiedAt(),
-        entity.getTeacherId(),
+        entity.getTeacherMatricule(),
         entity.getAdminId());
   }
 }

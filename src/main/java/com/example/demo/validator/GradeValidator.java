@@ -22,15 +22,17 @@ public class GradeValidator {
 
     var isAssigned =
         teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, exam.getCourseId());
+
     if (!isAssigned) {
       throw new GradeValidationException(
           "Teacher " + teacherId + " is not assigned to course " + exam.getCourseId());
     }
   }
 
-  public void validateExactlyOneAuthor(UUID teacherId, UUID adminId) {
-    var teacherSet = teacherId != null;
+  public void validateExactlyOneAuthor(String teacherMatricule, UUID adminId) {
+    var teacherSet = teacherMatricule != null;
     var adminSet = adminId != null;
+
     if (teacherSet == adminSet) {
       throw new GradeValidationException(
           "A grade must have exactly one author: either a teacher or an admin");

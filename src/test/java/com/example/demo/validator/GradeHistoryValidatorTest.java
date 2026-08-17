@@ -13,7 +13,7 @@ class GradeHistoryValidatorTest {
 
   @Test
   void accepts_teacher_only() {
-    assertThatCode(() -> validator.validateExactlyOneAuthor(UUID.randomUUID(), null))
+    assertThatCode(() -> validator.validateExactlyOneAuthor("TCH26183", null))
         .doesNotThrowAnyException();
   }
 
@@ -25,8 +25,7 @@ class GradeHistoryValidatorTest {
 
   @Test
   void rejects_both_set() {
-    assertThatThrownBy(
-            () -> validator.validateExactlyOneAuthor(UUID.randomUUID(), UUID.randomUUID()))
+    assertThatThrownBy(() -> validator.validateExactlyOneAuthor("TCH26183", UUID.randomUUID()))
         .isInstanceOf(GradeValidationException.class);
   }
 

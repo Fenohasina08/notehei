@@ -11,5 +11,5 @@ public record GradeHistory(
     BigDecimal newValue,
     String reason,
     LocalDateTime modifiedAt,
-    UUID teacherId,
+    String teacherMatricule,
     UUID adminId) {}

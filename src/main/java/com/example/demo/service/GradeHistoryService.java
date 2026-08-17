@@ -6,6 +6,7 @@ import com.example.demo.mapper.GradeHistoryMapper;
 import com.example.demo.model.GradeHistory;
 import com.example.demo.repository.GradeHistoryRepository;
 import com.example.demo.repository.GradeRepository;
+import com.example.demo.repository.TeacherRepository;
 import com.example.demo.validator.GradeHistoryValidator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,12 +21,25 @@ public class GradeHistoryService {
 
   private final GradeHistoryRepository gradeHistoryRepository;
   private final GradeRepository gradeRepository;
+  private final TeacherRepository teacherRepository;
   private final GradeHistoryValidator gradeHistoryValidator;
   private final GradeHistoryMapper gradeHistoryMapper;
 
   public GradeHistory recordModification(
       UUID gradeId, BigDecimal newValue, String reason, UUID teacherId, UUID adminId) {
-    gradeHistoryValidator.validateExactlyOneAuthor(teacherId, adminId);
+
+    String teacherMatricule = null;
+
+    if (teacherId != null) {
+      var teacher =
+          teacherRepository
+              .findById(teacherId)
+              .orElseThrow(() -> new IllegalArgumentException("Teacher not found: " + teacherId));
+
+      teacherMatricule = teacher.getMatricule();
+    }
+
+    gradeHistoryValidator.validateExactlyOneAuthor(teacherMatricule, adminId);
 
     JGrade grade =
         gradeRepository
@@ -39,9 +53,10 @@ public class GradeHistoryService {
             .newValue(newValue)
             .reason(reason)
             .modifiedAt(LocalDateTime.now())
-            .teacherId(teacherId)
+            .teacherMatricule(teacherMatricule)
             .adminId(adminId)
             .build();
+
     var savedHistory = gradeHistoryRepository.save(history);
 
     grade.setValue(newValue);

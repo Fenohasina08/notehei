@@ -43,8 +43,8 @@ public class JGradeHistory {
   @Column(name = "modified_at", nullable = false)
   private LocalDateTime modifiedAt;
 
-  @Column(name = "teacher_id")
-  private UUID teacherId;
+  @Column(name = "teacher_matricule")
+  private String teacherMatricule;
 
   @Column(name = "admin_id")
   private UUID adminId;

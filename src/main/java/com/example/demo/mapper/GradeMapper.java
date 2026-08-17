@@ -10,12 +10,12 @@ public class GradeMapper {
   public JGrade toEntity(Grade dto) {
     return JGrade.builder()
         .id(dto.id())
-        .studentId(dto.studentId())
+        .studentMatricule(dto.studentMatricule())
         .examId(dto.examId())
         .value(dto.value())
         .status(dto.status())
         .enteredAt(dto.enteredAt())
-        .teacherId(dto.teacherId())
+        .teacherMatricule(dto.teacherMatricule())
         .adminId(dto.adminId())
         .build();
   }
@@ -23,12 +23,12 @@ public class GradeMapper {
   public Grade toDto(JGrade entity) {
     return new Grade(
         entity.getId(),
-        entity.getStudentId(),
+        entity.getStudentMatricule(),
         entity.getExamId(),
         entity.getValue(),
         entity.getStatus(),
         entity.getEnteredAt(),
-        entity.getTeacherId(),
+        entity.getTeacherMatricule(),
         entity.getAdminId());
   }
 }
