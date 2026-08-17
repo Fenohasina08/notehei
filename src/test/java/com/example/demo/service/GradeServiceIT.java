@@ -282,7 +282,7 @@ class GradeServiceIT extends FacadeIT {
             .email("teacher-" + UUID.randomUUID() + "@test.com")
             .password("password")
             .address("Antananarivo")
-            .matricule("TCH" + UUID.randomUUID().toString().replace("-", ""))
+            .matricule("TCH" + ThreadLocalRandom.current().nextInt(10000, 100000))
             .build());
   }
 
