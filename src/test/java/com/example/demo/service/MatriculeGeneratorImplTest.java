@@ -26,7 +26,7 @@ class MatriculeGeneratorImplTest {
 
     String matricule = matriculeGenerator.generateStudentMatricule();
 
-    String year = String.format("%03d", LocalDate.now().getYear() % 100);
+    String year = String.format("%02d", LocalDate.now().getYear() % 100);
 
     assertEquals("STD" + year + "182", matricule);
 
@@ -41,7 +41,7 @@ class MatriculeGeneratorImplTest {
 
     String matricule = matriculeGenerator.generateTeacherMatricule();
 
-    String year = String.format("%03d", LocalDate.now().getYear() % 100);
+    String year = String.format("%02d", LocalDate.now().getYear() % 100);
 
     assertEquals("TCH" + year + "183", matricule);
 

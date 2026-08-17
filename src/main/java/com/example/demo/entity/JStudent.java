@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "student")
@@ -37,7 +39,11 @@ public class JStudent {
   @Column(name = "matricule", nullable = false, unique = true, length = 20, updatable = false)
   private String matricule;
 
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false)
   private Timestamp createdAt;
 
+  @UpdateTimestamp
+  @Column(nullable = false)
   private Timestamp updatedAt;
 }

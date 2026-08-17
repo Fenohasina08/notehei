@@ -7,6 +7,8 @@ import static org.mockito.Mockito.*;
 import com.example.demo.dto.CreateTeacherDTO;
 import com.example.demo.dto.TeacherResponseDTO;
 import com.example.demo.entity.JTeacher;
+import com.example.demo.exception.EmailAlreadyUsedException;
+import com.example.demo.exception.TeacherNotFoundException;
 import com.example.demo.repository.TeacherRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -115,10 +117,11 @@ class TeacherServiceTest {
   void create_shouldThrowExceptionWhenEmailAlreadyExists() {
     when(teacherRepository.existsByEmail("jane.smith@test.com")).thenReturn(true);
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> teacherService.create(createTeacherDTO));
+    EmailAlreadyUsedException exception =
+        assertThrows(
+            EmailAlreadyUsedException.class, () -> teacherService.create(createTeacherDTO));
 
-    assertEquals("Email already exists", exception.getMessage());
+    assertEquals("Email already in use: jane.smith@test.com", exception.getMessage());
 
     verify(teacherRepository).existsByEmail("jane.smith@test.com");
     verify(teacherRepository, never()).save(any());
@@ -148,10 +151,10 @@ class TeacherServiceTest {
 
     when(teacherRepository.findById(id)).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> teacherService.findById(id));
+    TeacherNotFoundException exception =
+        assertThrows(TeacherNotFoundException.class, () -> teacherService.findById(id));
 
-    assertEquals("Teacher not found", exception.getMessage());
+    assertEquals("No teacher found with id " + id, exception.getMessage());
   }
 
   @Test
@@ -171,10 +174,10 @@ class TeacherServiceTest {
   void findByEmail_shouldThrowExceptionWhenTeacherNotFound() {
     when(teacherRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
+    TeacherNotFoundException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> teacherService.findByEmail("unknown@test.com"));
+            TeacherNotFoundException.class, () -> teacherService.findByEmail("unknown@test.com"));
 
-    assertEquals("Teacher not found", exception.getMessage());
+    assertEquals("No teacher found with email unknown@test.com", exception.getMessage());
   }
 }

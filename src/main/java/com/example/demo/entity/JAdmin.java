@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "admin")
@@ -34,9 +36,11 @@ public class JAdmin {
   @Column(nullable = false)
   private String address;
 
-  @Column(nullable = true)
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false)
   private Timestamp createdAt;
 
-  @Column(nullable = true)
+  @UpdateTimestamp
+  @Column(nullable = false)
   private Timestamp updatedAt;
 }

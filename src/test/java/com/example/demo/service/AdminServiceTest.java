@@ -7,6 +7,8 @@ import static org.mockito.Mockito.*;
 import com.example.demo.dto.AdminResponseDTO;
 import com.example.demo.dto.CreateAdminDTO;
 import com.example.demo.entity.JAdmin;
+import com.example.demo.exception.AdminNotFoundException;
+import com.example.demo.exception.EmailAlreadyUsedException;
 import com.example.demo.repository.AdminRepository;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -105,10 +107,10 @@ class AdminServiceTest {
   void create_shouldThrowExceptionWhenEmailAlreadyExists() {
     when(adminRepository.existsByEmail("admin@test.com")).thenReturn(true);
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> adminService.create(createAdminDTO));
+    EmailAlreadyUsedException exception =
+        assertThrows(EmailAlreadyUsedException.class, () -> adminService.create(createAdminDTO));
 
-    assertEquals("Email already exists", exception.getMessage());
+    assertEquals("Email already in use: admin@test.com", exception.getMessage());
 
     verify(adminRepository).existsByEmail("admin@test.com");
     verify(adminRepository, never()).save(any());
@@ -137,10 +139,10 @@ class AdminServiceTest {
 
     when(adminRepository.findById(id)).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
-        assertThrows(IllegalArgumentException.class, () -> adminService.findById(id));
+    AdminNotFoundException exception =
+        assertThrows(AdminNotFoundException.class, () -> adminService.findById(id));
 
-    assertEquals("Admin not found", exception.getMessage());
+    assertEquals("No admin found with id " + id, exception.getMessage());
   }
 
   @Test
@@ -159,10 +161,10 @@ class AdminServiceTest {
   void findByEmail_shouldThrowExceptionWhenAdminNotFound() {
     when(adminRepository.findByEmail("unknown@test.com")).thenReturn(Optional.empty());
 
-    IllegalArgumentException exception =
+    AdminNotFoundException exception =
         assertThrows(
-            IllegalArgumentException.class, () -> adminService.findByEmail("unknown@test.com"));
+            AdminNotFoundException.class, () -> adminService.findByEmail("unknown@test.com"));
 
-    assertEquals("Admin not found", exception.getMessage());
+    assertEquals("No admin found with email unknown@test.com", exception.getMessage());
   }
 }

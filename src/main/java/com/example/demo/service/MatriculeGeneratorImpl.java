@@ -27,6 +27,6 @@ public class MatriculeGeneratorImpl implements MatriculeGenerator {
 
     int year = LocalDate.now().getYear() % 100;
 
-    return String.format("%s%03d%d", prefix, year, sequenceValue);
+    return String.format("%s%02d%03d", prefix, year, sequenceValue);
   }
 }
