@@ -4,11 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.demo.conf.FacadeIT;
+import com.example.demo.entity.JCourse;
 import com.example.demo.entity.JExam;
 import com.example.demo.entity.JExamType;
 import com.example.demo.exception.ExamValidationException;
+import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.ExamRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,13 +21,24 @@ class ExamValidatorIT extends FacadeIT {
 
   @Autowired private ExamRepository examRepository;
 
+  @Autowired private CourseRepository courseRepository;
+
   private ExamValidator examValidator;
   private UUID courseId;
 
   @BeforeEach
   void setUp() {
     examValidator = new ExamValidator(examRepository);
-    courseId = UUID.randomUUID();
+
+    var course =
+        courseRepository.save(
+            JCourse.builder()
+                .reference("COURSE-" + UUID.randomUUID().toString().substring(0, 8))
+                .title("Test Course")
+                .coefficient(bd("1.00"))
+                .build());
+
+    courseId = course.getId();
   }
 
   @Test
@@ -78,7 +92,7 @@ class ExamValidatorIT extends FacadeIT {
   @Test
   void weighting_is_complete_only_when_non_retake_total_equals_100() {
     examRepository.saveAll(
-        java.util.List.of(
+        List.of(
             JExam.builder()
                 .courseId(courseId)
                 .type(JExamType.CONTINUOUS_ASSESSMENT)
