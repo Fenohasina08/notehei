@@ -1,7 +1,9 @@
 package com.example.demo.endpoint.controller;
 
 import com.example.demo.model.GradeHistory;
+import com.example.demo.security.JwtService;
 import com.example.demo.service.GradeHistoryService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class GradeHistoryController {
 
   private final GradeHistoryService gradeHistoryService;
+  private final JwtService jwtService;
 
   public record ModificationRequest(BigDecimal newValue, String reason) {}
 
@@ -30,8 +33,9 @@ public class GradeHistoryController {
   public ResponseEntity<GradeHistory> modify(
       @PathVariable UUID gradeId,
       @RequestBody ModificationRequest request,
+      HttpServletRequest httpRequest,
       Authentication authentication) {
-    var userId = UUID.fromString(authentication.getName());
+    var userId = extractUserId(httpRequest);
     var isTeacher =
         authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));
@@ -47,5 +51,11 @@ public class GradeHistoryController {
   @GetMapping("/{gradeId}")
   public ResponseEntity<List<GradeHistory>> history(@PathVariable UUID gradeId) {
     return ResponseEntity.ok(gradeHistoryService.getHistoryForGrade(gradeId));
+  }
+
+  private UUID extractUserId(HttpServletRequest request) {
+    var header = request.getHeader("Authorization");
+    var token = header.substring("Bearer ".length());
+    return jwtService.extractUserId(token);
   }
 }
