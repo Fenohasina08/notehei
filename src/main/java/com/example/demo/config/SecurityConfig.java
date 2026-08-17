@@ -41,7 +41,7 @@ public class SecurityConfig {
                     .accessDeniedHandler(customAccessDeniedHandler))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/auth/login")
+                auth.requestMatchers("/auth/login", "/hello")
                     .permitAll()
                     .requestMatchers("/ping", "/health/**")
                     .permitAll()

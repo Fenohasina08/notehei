@@ -1,2 +1,18 @@
 services:
-  
+  localstack:
+    image: localstack/localstack:3.0 # pinned: newer "latest" tags require a Pro license/auth token
+    container_name: notehei-localstack
+    ports:
+      - "4566:4566" # LocalStack edge port (all mocked AWS services)
+    environment:
+      - SERVICES=events # only start EventBridge; add more (e.g. s3,sqs) if needed later
+      - DEBUG=1
+      - AWS_DEFAULT_REGION=eu-west-3
+    volumes:
+      - "./localstack-data:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
