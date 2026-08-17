@@ -22,16 +22,6 @@ public class FacadeIT {
     new BucketConf().configureProperties(registry);
     new EmailConf().configureProperties(registry);
 
-    try {
-      var envConfClazz = Class.forName("com.example.demo.conf.EnvConf");
-      var envConfConfigureProperties =
-          envConfClazz.getDeclaredMethod("configureProperties", DynamicPropertyRegistry.class);
-      var envConf = envConfClazz.getConstructor().newInstance();
-      envConfConfigureProperties.invoke(envConf, registry);
-    } catch (ClassNotFoundException e) {
-      log.warn("EnvConf missing: no project-specific test env vars will be set");
-    }
-
     new PostgresConf().configureProperties(registry);
   }
 }
