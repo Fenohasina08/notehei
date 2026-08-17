@@ -1,7 +1,7 @@
 package com.example.demo.exception;
 
-public class TranscriptValidationException extends RuntimeException {
+public class TranscriptValidationException extends ValidationException {
   public TranscriptValidationException(String message) {
-    super(message);
+    super("TRANSCRIPT_VALIDATION_FAILED", message);
   }
 }
