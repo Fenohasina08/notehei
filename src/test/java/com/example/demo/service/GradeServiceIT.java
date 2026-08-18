@@ -145,6 +145,38 @@ class GradeServiceIT extends FacadeIT {
   }
 
   @Test
+  void computeOverallGrade_shouldCalculateWeightedAverageAcrossCourses() {
+    var student = createStudent();
+
+    var mathematics = createCourse("Mathematics", "2.00");
+    var computerScience = createCourse("Computer Science", "3.00");
+    var english = createCourse("English", "1.00");
+
+    var mathematicsExam = createExam(mathematics, JExamType.FINAL_EXAM, "100.00");
+
+    var computerScienceExam = createExam(computerScience, JExamType.FINAL_EXAM, "100.00");
+
+    var englishExam = createExam(english, JExamType.FINAL_EXAM, "100.00");
+
+    createTeacherGrade(student, mathematicsExam, "14.00");
+    createTeacherGrade(student, computerScienceExam, "16.00");
+    createTeacherGrade(student, englishExam, "12.00");
+
+    var result = gradeService.computeOverallGrade(student.getMatricule());
+
+    assertThat(result).isEqualByComparingTo("14.6667");
+  }
+
+  @Test
+  void computeOverallGrade_shouldReturnZeroWhenStudentHasNoGrades() {
+    var student = createStudent();
+
+    var result = gradeService.computeOverallGrade(student.getMatricule());
+
+    assertThat(result).isEqualByComparingTo("0");
+  }
+
+  @Test
   void getGradesForStudent_shouldReturnStudentGrades() {
     var student = createStudent();
     var course = createCourse();
@@ -173,7 +205,9 @@ class GradeServiceIT extends FacadeIT {
   void createGradeByTeacher_shouldCreateGradeWithTeacherAsAuthor() {
     var student = createStudent();
     var course = createCourse();
+
     var exam = createExam(course, JExamType.FINAL_EXAM, "100.00");
+
     var teacher = createTeacher();
 
     createGroupAndAssignment(teacher, course);
@@ -218,7 +252,9 @@ class GradeServiceIT extends FacadeIT {
   void createGradeByAdmin_shouldCreateGradeWithAdminAsAuthor() {
     var student = createStudent();
     var course = createCourse();
+
     var exam = createExam(course, JExamType.FINAL_EXAM, "100.00");
+
     var admin = createAdmin();
 
     var grade =
@@ -298,11 +334,16 @@ class GradeServiceIT extends FacadeIT {
   }
 
   private JCourse createCourse() {
+    return createCourse("Test Course", "1.00");
+  }
+
+  private JCourse createCourse(String title, String coefficient) {
+
     return courseRepository.save(
         JCourse.builder()
             .reference("COURSE-" + UUID.randomUUID().toString().substring(0, 8))
-            .title("Test Course")
-            .coefficient(new BigDecimal("1.00"))
+            .title(title)
+            .coefficient(new BigDecimal(coefficient))
             .build());
   }
 
