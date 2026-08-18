@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.endpoint.controller;
 
 import com.example.demo.dto.ChangePasswordDTO;
 import com.example.demo.dto.CreateStudentDTO;
