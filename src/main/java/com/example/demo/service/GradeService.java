@@ -4,6 +4,7 @@ import com.example.demo.entity.JExam;
 import com.example.demo.entity.JExamType;
 import com.example.demo.mapper.GradeMapper;
 import com.example.demo.model.Grade;
+import com.example.demo.repository.CourseRepository;
 import com.example.demo.repository.ExamRepository;
 import com.example.demo.repository.GradeRepository;
 import com.example.demo.repository.TeacherRepository;
@@ -12,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,7 @@ public class GradeService {
 
   private final GradeRepository gradeRepository;
   private final ExamRepository examRepository;
+  private final CourseRepository courseRepository;
   private final TeacherRepository teacherRepository;
   private final GradeValidator gradeValidator;
   private final GradeMapper gradeMapper;
@@ -84,6 +87,48 @@ public class GradeService {
     }
 
     return normalTotal.max(retakeGrade.get().getValue());
+  }
+
+  public BigDecimal computeOverallGrade(String studentMatricule) {
+    var grades = gradeRepository.findByStudentMatricule(studentMatricule);
+
+    if (grades.isEmpty()) {
+      return BigDecimal.ZERO;
+    }
+
+    var courseIds =
+        grades.stream()
+            .map(grade -> examRepository.findById(grade.getExamId()))
+            .flatMap(Optional::stream)
+            .map(JExam::getCourseId)
+            .distinct()
+            .toList();
+
+    if (courseIds.isEmpty()) {
+      return BigDecimal.ZERO;
+    }
+
+    var weightedTotal = BigDecimal.ZERO;
+    var totalCoefficient = BigDecimal.ZERO;
+
+    for (var courseId : courseIds) {
+      var course =
+          courseRepository
+              .findById(courseId)
+              .orElseThrow(() -> new IllegalArgumentException("Course not found: " + courseId));
+
+      var retainedGrade = computeRetainedGrade(studentMatricule, courseId);
+
+      weightedTotal = weightedTotal.add(retainedGrade.multiply(course.getCoefficient()));
+
+      totalCoefficient = totalCoefficient.add(course.getCoefficient());
+    }
+
+    if (totalCoefficient.compareTo(BigDecimal.ZERO) == 0) {
+      return BigDecimal.ZERO;
+    }
+
+    return weightedTotal.divide(totalCoefficient, 4, RoundingMode.HALF_UP);
   }
 
   private BigDecimal weightedValue(String studentMatricule, JExam exam) {
