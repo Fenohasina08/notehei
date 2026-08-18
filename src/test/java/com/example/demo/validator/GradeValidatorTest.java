@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import com.example.demo.entity.JExam;
+import com.example.demo.entity.JStudent;
 import com.example.demo.exception.GradeValidationException;
 import com.example.demo.repository.ExamRepository;
+import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeachingAssignmentRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,12 +22,14 @@ class GradeValidatorTest {
 
   @Mock private ExamRepository examRepository;
   @Mock private TeachingAssignmentRepository teachingAssignmentRepository;
+  @Mock private StudentRepository studentRepository;
 
   private GradeValidator gradeValidator;
 
   @BeforeEach
   void setUp() {
-    gradeValidator = new GradeValidator(examRepository, teachingAssignmentRepository);
+    gradeValidator =
+        new GradeValidator(examRepository, teachingAssignmentRepository, studentRepository);
   }
 
   @Test
@@ -36,7 +40,6 @@ class GradeValidatorTest {
 
     when(examRepository.findById(examId))
         .thenReturn(Optional.of(JExam.builder().id(examId).courseId(courseId).build()));
-
     when(teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, courseId))
         .thenReturn(true);
 
@@ -51,7 +54,6 @@ class GradeValidatorTest {
 
     when(examRepository.findById(examId))
         .thenReturn(Optional.of(JExam.builder().id(examId).courseId(courseId).build()));
-
     when(teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, courseId))
         .thenReturn(false);
 
@@ -73,5 +75,39 @@ class GradeValidatorTest {
   void rejects_when_neither_teacher_nor_admin_is_set() {
     assertThatThrownBy(() -> gradeValidator.validateExactlyOneAuthor(null, null))
         .isInstanceOf(GradeValidationException.class);
+  }
+
+  @Test
+  void accepts_when_student_requests_their_own_grades() {
+    var requesterId = UUID.randomUUID();
+    var studentMatricule = "STD26001";
+
+    when(studentRepository.findById(requesterId))
+        .thenReturn(
+            Optional.of(JStudent.builder().id(requesterId).matricule(studentMatricule).build()));
+
+    gradeValidator.validateRequesterCanAccessStudentGrades(requesterId, true, studentMatricule);
+  }
+
+  @Test
+  void rejects_when_student_requests_another_students_grades() {
+    var requesterId = UUID.randomUUID();
+
+    when(studentRepository.findById(requesterId))
+        .thenReturn(Optional.of(JStudent.builder().id(requesterId).matricule("STD26001").build()));
+
+    assertThatThrownBy(
+            () ->
+                gradeValidator.validateRequesterCanAccessStudentGrades(
+                    requesterId, true, "STD26999"))
+        .isInstanceOf(GradeValidationException.class)
+        .hasMessageContaining("cannot access");
+  }
+
+  @Test
+  void accepts_when_requester_is_not_a_student() {
+    var requesterId = UUID.randomUUID();
+
+    gradeValidator.validateRequesterCanAccessStudentGrades(requesterId, false, "STD26001");
   }
 }
