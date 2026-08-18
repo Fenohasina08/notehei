@@ -15,6 +15,8 @@ import com.example.demo.entity.JTeachingAssignment;
 import com.example.demo.model.Grade;
 import com.example.demo.repository.AdminRepository;
 import com.example.demo.repository.CourseRepository;
+import com.example.demo.repository.CourseUnitCourseRepository;
+import com.example.demo.repository.CourseUnitRepository;
 import com.example.demo.repository.ExamRepository;
 import com.example.demo.repository.GradeRepository;
 import com.example.demo.repository.StudentRepository;
@@ -40,6 +42,10 @@ class GradeServiceIT extends FacadeIT {
 
   @Autowired private CourseRepository courseRepository;
 
+  @Autowired private CourseUnitRepository courseUnitRepository;
+
+  @Autowired private CourseUnitCourseRepository courseUnitCourseRepository;
+
   @Autowired private StudentRepository studentRepository;
 
   @Autowired private TeacherRepository teacherRepository;
@@ -56,6 +62,10 @@ class GradeServiceIT extends FacadeIT {
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
 
+    jdbcTemplate.update("DELETE FROM course_unit_course");
+    courseUnitRepository.deleteAll();
+    jdbcTemplate.update("DELETE FROM semester");
+    jdbcTemplate.update("DELETE FROM academic_year");
     gradeRepository.deleteAll();
     teachingAssignmentRepository.deleteAll();
     examRepository.deleteAll();
@@ -145,38 +155,6 @@ class GradeServiceIT extends FacadeIT {
   }
 
   @Test
-  void computeOverallGrade_shouldCalculateWeightedAverageAcrossCourses() {
-    var student = createStudent();
-
-    var mathematics = createCourse("Mathematics", "2.00");
-    var computerScience = createCourse("Computer Science", "3.00");
-    var english = createCourse("English", "1.00");
-
-    var mathematicsExam = createExam(mathematics, JExamType.FINAL_EXAM, "100.00");
-
-    var computerScienceExam = createExam(computerScience, JExamType.FINAL_EXAM, "100.00");
-
-    var englishExam = createExam(english, JExamType.FINAL_EXAM, "100.00");
-
-    createTeacherGrade(student, mathematicsExam, "14.00");
-    createTeacherGrade(student, computerScienceExam, "16.00");
-    createTeacherGrade(student, englishExam, "12.00");
-
-    var result = gradeService.computeOverallGrade(student.getMatricule());
-
-    assertThat(result).isEqualByComparingTo("14.6667");
-  }
-
-  @Test
-  void computeOverallGrade_shouldReturnZeroWhenStudentHasNoGrades() {
-    var student = createStudent();
-
-    var result = gradeService.computeOverallGrade(student.getMatricule());
-
-    assertThat(result).isEqualByComparingTo("0");
-  }
-
-  @Test
   void getGradesForStudent_shouldReturnStudentGrades() {
     var student = createStudent();
     var course = createCourse();
@@ -205,9 +183,7 @@ class GradeServiceIT extends FacadeIT {
   void createGradeByTeacher_shouldCreateGradeWithTeacherAsAuthor() {
     var student = createStudent();
     var course = createCourse();
-
     var exam = createExam(course, JExamType.FINAL_EXAM, "100.00");
-
     var teacher = createTeacher();
 
     createGroupAndAssignment(teacher, course);
@@ -252,9 +228,7 @@ class GradeServiceIT extends FacadeIT {
   void createGradeByAdmin_shouldCreateGradeWithAdminAsAuthor() {
     var student = createStudent();
     var course = createCourse();
-
     var exam = createExam(course, JExamType.FINAL_EXAM, "100.00");
-
     var admin = createAdmin();
 
     var grade =
@@ -291,6 +265,75 @@ class GradeServiceIT extends FacadeIT {
     assertThat(saved.getAdminId()).isEqualTo(admin.getId());
 
     assertThat(saved.getTeacherMatricule()).isNull();
+  }
+
+  @Test
+  void computeCourseUnitAverage_shouldWeightCoursesByTheirCreditsWithinTheUnit() {
+    var student = createStudent();
+
+    var courseA = createCourse();
+    var courseB = createCourse();
+
+    var examA = createExam(courseA, JExamType.FINAL_EXAM, "100.00");
+    var examB = createExam(courseB, JExamType.FINAL_EXAM, "100.00");
+
+    createTeacherGrade(student, examA, "10.00");
+    createTeacherGrade(student, examB, "16.00");
+
+    var semester = createSemester();
+    var courseUnit = createCourseUnit(semester, 6);
+    linkCourseToUnit(courseUnit, courseA, 2);
+    linkCourseToUnit(courseUnit, courseB, 4);
+
+    var result = gradeService.computeCourseUnitAverage(student.getMatricule(), courseUnit);
+
+    // (10 * 2 + 16 * 4) / (2 + 4) = 14.0
+    assertThat(result).isEqualByComparingTo("14.0000");
+  }
+
+  @Test
+  void computeCourseUnitAverage_shouldReturnZeroWhenUnitHasNoCourses() {
+    var student = createStudent();
+    var semester = createSemester();
+    var courseUnit = createCourseUnit(semester, 6);
+
+    var result = gradeService.computeCourseUnitAverage(student.getMatricule(), courseUnit);
+
+    assertThat(result).isEqualByComparingTo("0");
+  }
+
+  @Test
+  void computeSemesterAverage_shouldWeightCourseUnitsByTheirCreditsWithinTheSemester() {
+    var student = createStudent();
+    var semester = createSemester();
+
+    var courseA = createCourse();
+    var examA = createExam(courseA, JExamType.FINAL_EXAM, "100.00");
+    createTeacherGrade(student, examA, "12.00");
+    var unitOne = createCourseUnit(semester, 10);
+    linkCourseToUnit(unitOne, courseA, 10);
+
+    var courseB = createCourse();
+    var examB = createExam(courseB, JExamType.FINAL_EXAM, "100.00");
+    createTeacherGrade(student, examB, "18.00");
+    var unitTwo = createCourseUnit(semester, 20);
+    linkCourseToUnit(unitTwo, courseB, 20);
+
+    var result = gradeService.computeSemesterAverage(student.getMatricule(), semester);
+
+    // unitOne average = 12.0 (credits 10), unitTwo average = 18.0 (credits 20)
+    // (12 * 10 + 18 * 20) / (10 + 20) = 16.0
+    assertThat(result).isEqualByComparingTo("16.0000");
+  }
+
+  @Test
+  void computeSemesterAverage_shouldReturnZeroWhenSemesterHasNoCourseUnits() {
+    var student = createStudent();
+    var semester = createSemester();
+
+    var result = gradeService.computeSemesterAverage(student.getMatricule(), semester);
+
+    assertThat(result).isEqualByComparingTo("0");
   }
 
   private JStudent createStudent() {
@@ -334,16 +377,11 @@ class GradeServiceIT extends FacadeIT {
   }
 
   private JCourse createCourse() {
-    return createCourse("Test Course", "1.00");
-  }
-
-  private JCourse createCourse(String title, String coefficient) {
-
     return courseRepository.save(
         JCourse.builder()
             .reference("COURSE-" + UUID.randomUUID().toString().substring(0, 8))
-            .title(title)
-            .coefficient(new BigDecimal(coefficient))
+            .title("Test Course")
+            .coefficient(new BigDecimal("1.00"))
             .build());
   }
 
@@ -403,5 +441,46 @@ class GradeServiceIT extends FacadeIT {
             .courseId(course.getId())
             .groupId(groupId)
             .build());
+  }
+
+  private UUID createSemester() {
+    var cohortId = UUID.randomUUID();
+    var academicYearId = UUID.randomUUID();
+    var semesterId = UUID.randomUUID();
+
+    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
+
+    jdbcTemplate.update(
+        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
+        academicYearId,
+        "AY-" + UUID.randomUUID().toString().substring(0, 6),
+        2026,
+        2027);
+
+    jdbcTemplate.update(
+        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
+        semesterId,
+        1,
+        cohortId,
+        academicYearId);
+
+    return semesterId;
+  }
+
+  private UUID createCourseUnit(UUID semesterId, int credits) {
+    return courseUnitRepository
+        .save(
+            com.example.demo.entity.JCourseUnit.builder()
+                .code("CU-" + UUID.randomUUID().toString().substring(0, 8))
+                .name("Test Course Unit")
+                .credits(credits)
+                .semesterId(semesterId)
+                .build())
+        .getId();
+  }
+
+  private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
+    courseUnitCourseRepository.save(
+        new com.example.demo.entity.JCourseUnitCourse(courseUnitId, course.getId(), credits));
   }
 }
