@@ -2,6 +2,7 @@ package com.example.demo.validator;
 
 import com.example.demo.exception.GradeValidationException;
 import com.example.demo.repository.ExamRepository;
+import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeachingAssignmentRepository;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -13,6 +14,7 @@ public class GradeValidator {
 
   private final ExamRepository examRepository;
   private final TeachingAssignmentRepository teachingAssignmentRepository;
+  private final StudentRepository studentRepository;
 
   public void validateTeacherOwnsExam(UUID teacherId, UUID examId) {
     var exam =
@@ -36,6 +38,23 @@ public class GradeValidator {
     if (teacherSet == adminSet) {
       throw new GradeValidationException(
           "A grade must have exactly one author: either a teacher or an admin");
+    }
+  }
+
+  public void validateRequesterCanAccessStudentGrades(
+      UUID requesterId, boolean requesterIsStudent, String studentMatricule) {
+    if (!requesterIsStudent) {
+      return;
+    }
+
+    var student =
+        studentRepository
+            .findById(requesterId)
+            .orElseThrow(() -> new GradeValidationException("Student not found: " + requesterId));
+
+    if (!student.getMatricule().equals(studentMatricule)) {
+      throw new GradeValidationException(
+          "Requester " + requesterId + " cannot access the grades of " + studentMatricule);
     }
   }
 }
