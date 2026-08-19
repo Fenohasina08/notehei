@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+<<<<<<< HEAD
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -87,4 +88,7 @@ class TranscriptServiceIT extends PostgresConf {
     assertNotNull(result);
     assertEquals(1, transcriptRepository.findByStudentId(studentId).size());
   }
+=======
+public class TranscriptServiceIT {
+>>>>>>> 256a3a3 (chore(endpoint/event): TranscriptRequestedEvent - update event model for transcript processing)
 }

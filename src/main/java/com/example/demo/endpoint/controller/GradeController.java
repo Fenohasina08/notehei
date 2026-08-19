@@ -56,6 +56,14 @@ public class GradeController {
     return ResponseEntity.ok(gradeService.computeRetainedGrade(studentMatricule, courseId));
   }
 
+  @GetMapping("/exam/{examId}/missing")
+  @PreAuthorize("hasAnyRole('TEACHER','ADMIN')")
+  public ResponseEntity<List<com.example.demo.model.MissingGrade>> missingGradesForExam(
+      @PathVariable UUID examId, HttpServletRequest request) {
+    var teacherId = extractUserId(request);
+    return ResponseEntity.ok(gradeService.getStudentsMissingGradeForExam(teacherId, examId));
+  }
+
   private UUID extractUserId(HttpServletRequest request) {
     var header = request.getHeader("Authorization");
     var token = header.substring("Bearer ".length());
