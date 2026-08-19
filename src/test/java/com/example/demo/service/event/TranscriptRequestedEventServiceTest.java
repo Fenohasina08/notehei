@@ -23,6 +23,7 @@ import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TranscriptRepository;
 import com.example.demo.service.TranscriptService;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,12 +37,19 @@ import org.mockito.MockitoAnnotations;
 class TranscriptRequestedEventServiceTest {
 
   @Mock private TranscriptRepository transcriptRepository;
+
   @Mock private TranscriptService transcriptService;
+
   @Mock private StudentRepository studentRepository;
+
   @Mock private SemesterRepository semesterRepository;
+
   @Mock private AcademicYearRepository academicYearRepository;
+
   @Mock private TranscriptPdfGenerator transcriptPdfGenerator;
+
   @Mock private BucketComponent bucketComponent;
+
   @Mock private EventProducer<SendEmailRequested> eventProducer;
 
   @InjectMocks private TranscriptRequestedEventService service;
@@ -72,19 +80,23 @@ class TranscriptRequestedEventServiceTest {
     academicYear.setId(academicYearId);
 
     when(transcriptRepository.existsById(transcriptId)).thenReturn(true);
+
     when(studentRepository.findById(studentId)).thenReturn(Optional.of(student));
+
     when(semesterRepository.findById(semesterId)).thenReturn(Optional.of(semester));
+
     when(academicYearRepository.findById(academicYearId)).thenReturn(Optional.of(academicYear));
 
     when(transcriptPdfGenerator.generate(any(), any(), any(), any(), any()))
         .thenReturn(File.createTempFile("transcript-test", ".pdf"));
+
     when(bucketComponent.upload(any(File.class), any(String.class)))
         .thenReturn(new FileHash(FileHashAlgorithm.SHA256, "fake-hash"));
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  void generates_uploads_delegates_markGenerated_and_triggers_email() {
+  void generates_uploads_delegates_markGenerated_and_triggers_email() throws IOException {
     var event =
         TranscriptRequestedEvent.builder()
             .transcriptId(transcriptId)
@@ -96,21 +108,30 @@ class TranscriptRequestedEventServiceTest {
 
     // PDF generated then uploaded
     verify(transcriptPdfGenerator).generate(any(), any(), any(), any(), any());
+
     verify(bucketComponent).upload(any(File.class), any(String.class));
 
-    // Delegates the GENERATED transition to TranscriptService.markGenerated (single source of
-    // truth for that state change), instead of touching the repository directly.
+    // Delegates the GENERATED transition to TranscriptService.markGenerated
+    // (single source of truth for that state change),
+    // instead of touching the repository directly.
     ArgumentCaptor<String> bucketKeyCaptor = ArgumentCaptor.forClass(String.class);
+
     verify(transcriptService).markGenerated(eq(transcriptId), bucketKeyCaptor.capture());
+
     assertNotNull(bucketKeyCaptor.getValue());
+
     assertEquals(
         "transcripts/" + studentId + "/" + semesterId + ".pdf", bucketKeyCaptor.getValue());
 
     // Email event produced for the student
     ArgumentCaptor<List<SendEmailRequested>> emailCaptor = ArgumentCaptor.forClass(List.class);
+
     verify(eventProducer).accept(emailCaptor.capture());
+
     SendEmailRequested emailEvent = emailCaptor.getValue().get(0);
+
     assertEquals("student.transcript@notehei.local", emailEvent.getTo());
+
     assertNotNull(emailEvent.getAttachmentBucketKey());
   }
 }

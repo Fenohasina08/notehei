@@ -9,15 +9,17 @@ import com.example.demo.repository.StudentRepository;
 import com.example.demo.security.JwtService;
 import com.example.demo.security.Role;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.client.TestRestTemplate;
 
 class GroupMembershipControllerIT extends FacadeIT {
 
@@ -26,13 +28,33 @@ class GroupMembershipControllerIT extends FacadeIT {
   @Autowired private PasswordEncoder passwordEncoder;
   @Autowired private JwtService jwtService;
 
+  private static final AtomicInteger MATRICULE_SEQUENCE = new AtomicInteger(10000);
+
   private JStudent studentA;
   private JStudent studentB;
 
   @BeforeEach
   void setUp() {
-    studentA = createStudent("gm-self-a@notehei.local", "STD25301");
-    studentB = createStudent("gm-self-b@notehei.local", "STD25302");
+    String suffix = UUID.randomUUID().toString().substring(0, 8);
+
+    studentA = createStudent("gm-self-a-" + suffix + "@notehei.local", generateMatricule());
+
+    studentB = createStudent("gm-self-b-" + suffix + "@notehei.local", generateMatricule());
+  }
+
+  @AfterEach
+  void tearDown() {
+    if (studentA != null) {
+      studentRepository.deleteById(studentA.getId());
+    }
+
+    if (studentB != null) {
+      studentRepository.deleteById(studentB.getId());
+    }
+  }
+
+  private String generateMatricule() {
+    return "STD" + MATRICULE_SEQUENCE.getAndIncrement();
   }
 
   private JStudent createStudent(String email, String matricule) {
@@ -49,8 +71,9 @@ class GroupMembershipControllerIT extends FacadeIT {
 
   private HttpHeaders bearerFor(JStudent student) {
     var token = jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT);
+
     var headers = new HttpHeaders();
-    headers.set("Authorization", "Bearer " + token);
+    headers.setBearerAuth(token);
     return headers;
   }
 

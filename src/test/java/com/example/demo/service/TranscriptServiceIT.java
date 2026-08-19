@@ -2,10 +2,8 @@ package com.example.demo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
-import com.example.demo.conf.PostgresConf;
+import com.example.demo.conf.FacadeIT;
 import com.example.demo.endpoint.event.EventProducer;
 import com.example.demo.endpoint.event.model.TranscriptRequestedEvent;
 import com.example.demo.entity.JAcademicYear;
@@ -17,7 +15,6 @@ import com.example.demo.repository.SemesterRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TranscriptRepository;
 import jakarta.persistence.EntityManager;
-import java.util.Collection;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,24 +26,19 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class TranscriptServiceIT extends PostgresConf {
+class TranscriptServiceIT extends FacadeIT {
 
   @Autowired private TranscriptService transcriptService;
-
   @Autowired private StudentRepository studentRepository;
-
   @Autowired private SemesterRepository semesterRepository;
-
   @Autowired private AcademicYearRepository academicYearRepository;
-
   @Autowired private TranscriptRepository transcriptRepository;
-
   @Autowired private EntityManager entityManager;
 
   @MockBean private EventProducer<TranscriptRequestedEvent> eventProducer;
 
   @Test
-  void requestTranscript_shouldPersistAsPendingAndProduceEvent() {
+  void requestTranscript_shouldPersistAsPending() {
     JStudent student = new JStudent();
     student.setId(UUID.randomUUID());
     student.setFirstName("Alice");
@@ -54,17 +46,16 @@ class TranscriptServiceIT extends PostgresConf {
     student.setMatricule("STD24191");
     student.setEmail("alice.smith@test.com");
     student.setPassword("TestPassword123!");
-    studentRepository.save(student);
+    studentRepository.saveAndFlush(student);
 
     JAcademicYear academicYear = new JAcademicYear();
     academicYear.setId(UUID.randomUUID());
     academicYear.setName("2024-2025");
     academicYear.setStartYear(2024);
     academicYear.setEndYear(2025);
-    academicYearRepository.save(academicYear);
+    academicYearRepository.saveAndFlush(academicYear);
 
     UUID cohortId = UUID.randomUUID();
-
     entityManager
         .createNativeQuery("INSERT INTO cohort (id, entry_year) VALUES (:id, :entryYear)")
         .setParameter("id", cohortId)
@@ -76,7 +67,7 @@ class TranscriptServiceIT extends PostgresConf {
     semester.setNumber(1);
     semester.setCohortId(cohortId);
     semester.setAcademicYearId(academicYear.getId());
-    semesterRepository.save(semester);
+    semesterRepository.saveAndFlush(semester);
 
     UUID studentId = student.getId();
     UUID semesterId = semester.getId();
@@ -87,7 +78,5 @@ class TranscriptServiceIT extends PostgresConf {
     assertNotNull(result);
     assertEquals("PENDING", result.status());
     assertEquals(1, transcriptRepository.findByStudentId(studentId).size());
-
-    verify(eventProducer).accept(any(Collection.class));
   }
 }

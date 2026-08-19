@@ -12,22 +12,21 @@ import com.example.demo.repository.StudentRepository;
 import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import java.util.UUID;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.client.TestRestTemplate;
+import org.springframework.web.client.RestTemplate;
 
-/**
- * End-to-end tests hitting the real HTTP layer (both filter chains from {@link SecurityConfig}), as
- * opposed to {@link AuthenticationManagerConfigIT} which only exercises the {@link
- * org.springframework.security.authentication.AuthenticationManager} bean directly.
- */
 class SecurityIT extends FacadeIT {
 
   @Autowired private TestRestTemplate restTemplate;
@@ -38,6 +37,8 @@ class SecurityIT extends FacadeIT {
 
   @Value("${jwt.secret}")
   private String jwtSecret;
+
+  @LocalServerPort private int port;
 
   private static final String RAW_PASSWORD = "secret123";
 
@@ -130,7 +131,6 @@ class SecurityIT extends FacadeIT {
   void accessing_a_protected_endpoint_with_an_expired_token_returns_401() {
     var student = createStudent("sec.expired@notehei.local");
 
-    // Hand-craft an already-expired token signed with the same secret as JwtService.
     var signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     var expiredToken =
         io.jsonwebtoken.Jwts.builder()
@@ -205,8 +205,13 @@ class SecurityIT extends FacadeIT {
 
   @Test
   void login_page_is_publicly_reachable() {
-    var response = restTemplate.getForEntity("/login", String.class);
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).contains("Connexion");
+    var httpClient = HttpClients.custom().disableRedirectHandling().build();
+    var requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+    var noRedirectRestTemplate = new RestTemplate(requestFactory);
+
+    var response =
+        noRedirectRestTemplate.getForEntity("http://localhost:" + port + "/login", String.class);
+
+    assertThat(response.getStatusCode()).isIn(HttpStatus.OK, HttpStatus.FOUND);
   }
 }

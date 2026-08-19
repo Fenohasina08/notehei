@@ -28,9 +28,8 @@ class CourseUnitValidatorIT extends FacadeIT {
 
     UUID courseUnitId = UUID.randomUUID();
 
-    assertThatThrownBy(
-            () -> validator.validateIsComplete(courseUnitId))
-            .isInstanceOf(Exception.class);
+    assertThatThrownBy(() -> validator.validateIsComplete(courseUnitId))
+        .isInstanceOf(Exception.class);
   }
 
   @Test
@@ -40,8 +39,7 @@ class CourseUnitValidatorIT extends FacadeIT {
 
     // Le CourseUnit doit être créé ici avant de tester
     // l'absence de programme/course.
-    assertThatThrownBy(
-            () -> validator.validateIsComplete(courseUnitId))
-            .isInstanceOf(Exception.class);
+    assertThatThrownBy(() -> validator.validateIsComplete(courseUnitId))
+        .isInstanceOf(Exception.class);
   }
 }

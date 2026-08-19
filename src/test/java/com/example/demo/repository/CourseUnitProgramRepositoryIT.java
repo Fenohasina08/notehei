@@ -16,10 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 class CourseUnitProgramRepositoryIT extends FacadeIT {
 
   @Autowired private CourseUnitProgramRepository courseUnitProgramRepository;
+
   @Autowired private CourseUnitRepository courseUnitRepository;
+
   @Autowired private ProgramRepository programRepository;
+
   @Autowired private SemesterRepository semesterRepository;
+
   @Autowired private CohortRepository cohortRepository;
+
   @Autowired private AcademicYearRepository academicYearRepository;
 
   private JCourseUnit courseUnit;
@@ -27,17 +32,14 @@ class CourseUnitProgramRepositoryIT extends FacadeIT {
 
   @BeforeEach
   void setUp() {
-    courseUnitProgramRepository.deleteAll();
-    courseUnitRepository.deleteAll();
-    programRepository.deleteAll();
-    semesterRepository.deleteAll();
-    cohortRepository.deleteAll();
-    academicYearRepository.deleteAll();
+    cleanDatabase();
 
     var cohort = cohortRepository.save(JCohort.builder().entryYear(2036).build());
+
     var academicYear =
         academicYearRepository.save(
             JAcademicYear.builder().name("CUP-2036").startYear(2036).endYear(2037).build());
+
     var semester =
         semesterRepository.save(
             JSemester.builder()
@@ -45,6 +47,7 @@ class CourseUnitProgramRepositoryIT extends FacadeIT {
                 .cohortId(cohort.getId())
                 .academicYearId(academicYear.getId())
                 .build());
+
     courseUnit =
         courseUnitRepository.save(
             JCourseUnit.builder()
@@ -53,6 +56,7 @@ class CourseUnitProgramRepositoryIT extends FacadeIT {
                 .credits(6)
                 .semesterId(semester.getId())
                 .build());
+
     program = programRepository.save(JProgram.builder().code("CUP").name("Test").build());
   }
 
