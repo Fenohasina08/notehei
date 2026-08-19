@@ -33,13 +33,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class SemesterAverageSimulationIT extends FacadeIT {
 
   @Autowired private GradeService gradeService;
+
   @Autowired private GradeRepository gradeRepository;
+
   @Autowired private ExamRepository examRepository;
+
   @Autowired private CourseRepository courseRepository;
+
   @Autowired private CourseUnitRepository courseUnitRepository;
+
   @Autowired private CourseUnitCourseRepository courseUnitCourseRepository;
+
   @Autowired private StudentRepository studentRepository;
+
   @Autowired private TeacherRepository teacherRepository;
+
   @Autowired private DataSource dataSource;
 
   private JdbcTemplate jdbcTemplate;
@@ -47,63 +55,100 @@ class SemesterAverageSimulationIT extends FacadeIT {
   @BeforeEach
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
-
-    jdbcTemplate.update("DELETE FROM course_unit_course");
-    courseUnitRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM semester");
-    jdbcTemplate.update("DELETE FROM academic_year");
-    gradeRepository.deleteAll();
-    examRepository.deleteAll();
-    teacherRepository.deleteAll();
-    studentRepository.deleteAll();
-    courseRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM \"group\"");
-    jdbcTemplate.update("DELETE FROM cohort");
+    cleanDatabase();
   }
 
   @Test
   void simulateStudentGrades_andComputeSemesterAverage() {
     var student = createStudent("Herimamy", "Fenohasina");
+
     var semesterId = createSemester();
 
     var unitProgramming = createCourseUnit(semesterId, "UE-PROG", "Programming", 10);
+
     var java = createCourse("PROG101", "Java Fundamentals");
+
     var web = createCourse("PROG102", "Web Development");
+
     linkCourseToUnit(unitProgramming, java, 6);
+
     linkCourseToUnit(unitProgramming, web, 4);
+
     gradeCourse(student, java, "15.50");
+
     gradeCourse(student, web, "12.00");
 
+    // ============================================================
+    // Course unit 2 : Mathematics - 8 credits
+    // ============================================================
+
     var unitMath = createCourseUnit(semesterId, "UE-MATH", "Mathematics", 8);
+
     var algebra = createCourse("MATH201", "Linear Algebra");
+
     linkCourseToUnit(unitMath, algebra, 8);
+
     gradeCourse(student, algebra, "9.00");
 
+    // ============================================================
+    // Course unit 3 : English - 4 credits
+    // ============================================================
+
     var unitEnglish = createCourseUnit(semesterId, "UE-ENG", "English", 4);
+
     var english = createCourse("ENG301", "Technical English");
+
     linkCourseToUnit(unitEnglish, english, 4);
+
     gradeCourse(student, english, "17.00");
+
+    // ============================================================
+    // Calcul des moyennes
+    // ============================================================
 
     var programmingAverage =
         gradeService.computeCourseUnitAverage(student.getMatricule(), unitProgramming);
+
     var mathAverage = gradeService.computeCourseUnitAverage(student.getMatricule(), unitMath);
+
     var englishAverage = gradeService.computeCourseUnitAverage(student.getMatricule(), unitEnglish);
+
     var semesterAverage = gradeService.computeSemesterAverage(student.getMatricule(), semesterId);
+
+    // ============================================================
+    // Logs
+    // ============================================================
 
     log.info(
         "=== Simulation results for {} ({}) ===", student.getFirstName(), student.getMatricule());
+
     log.info("UE-PROG (Programming, 10 credits): {} / 20", programmingAverage);
+
     log.info("UE-MATH (Mathematics, 8 credits): {} / 20", mathAverage);
+
     log.info("UE-ENG (English, 4 credits): {} / 20", englishAverage);
+
     log.info("Semester average: {} / 20", semesterAverage);
 
+    // ============================================================
+    // Assertions
+    // ============================================================
+
     assertThat(programmingAverage).isEqualByComparingTo("14.1000");
+
     assertThat(mathAverage).isEqualByComparingTo("9.0000");
+
     assertThat(englishAverage).isEqualByComparingTo("17.0000");
+
     assertThat(semesterAverage).isEqualByComparingTo("12.7727");
   }
 
+  // ==============================================================
+  // Student
+  // ==============================================================
+
   private JStudent createStudent(String firstName, String lastName) {
+
     return studentRepository.save(
         JStudent.builder()
             .firstName(firstName)
@@ -114,7 +159,12 @@ class SemesterAverageSimulationIT extends FacadeIT {
             .build());
   }
 
+  // ==============================================================
+  // Course
+  // ==============================================================
+
   private JCourse createCourse(String reference, String title) {
+
     return courseRepository.save(
         JCourse.builder()
             .reference(reference + "-" + UUID.randomUUID().toString().substring(0, 4))
@@ -123,7 +173,12 @@ class SemesterAverageSimulationIT extends FacadeIT {
             .build());
   }
 
+  // ==============================================================
+  // Grade
+  // ==============================================================
+
   private void gradeCourse(JStudent student, JCourse course, String value) {
+
     var exam =
         examRepository.save(
             JExam.builder()
@@ -146,6 +201,10 @@ class SemesterAverageSimulationIT extends FacadeIT {
             .build());
   }
 
+  // ==============================================================
+  // Teacher
+  // ==============================================================
+
   private JTeacher createTeacher() {
     return teacherRepository.save(
         JTeacher.builder()
@@ -158,22 +217,56 @@ class SemesterAverageSimulationIT extends FacadeIT {
             .build());
   }
 
+  // ==============================================================
+  // Semester
+  // ==============================================================
+
   private UUID createSemester() {
     var cohortId = UUID.randomUUID();
     var academicYearId = UUID.randomUUID();
     var semesterId = UUID.randomUUID();
 
+    // ------------------------------------------------------------
+    // 1. Créer le cohort
+    // ------------------------------------------------------------
+
     jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
 
+    // ------------------------------------------------------------
+    // 2. Vérifier que le cohort existe
+    // ------------------------------------------------------------
+
+    Integer cohortCount =
+        jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM cohort WHERE id = ?", Integer.class, cohortId);
+
+    assertThat(cohortCount).isEqualTo(1);
+
+    // ------------------------------------------------------------
+    // 3. Créer l'année académique
+    // ------------------------------------------------------------
+
     jdbcTemplate.update(
-        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
+        """
+        INSERT INTO academic_year
+            (id, name, start_year, end_year)
+        VALUES (?, ?, ?, ?)
+        """,
         academicYearId,
         "AY-" + UUID.randomUUID().toString().substring(0, 6),
         2026,
         2027);
 
+    // ------------------------------------------------------------
+    // 4. Créer le semester
+    // ------------------------------------------------------------
+
     jdbcTemplate.update(
-        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
+        """
+        INSERT INTO semester
+            (id, number, cohort_id, academic_year_id)
+        VALUES (?, ?, ?, ?)
+        """,
         semesterId,
         1,
         cohortId,
@@ -182,7 +275,12 @@ class SemesterAverageSimulationIT extends FacadeIT {
     return semesterId;
   }
 
+  // ==============================================================
+  // Course Unit
+  // ==============================================================
+
   private UUID createCourseUnit(UUID semesterId, String code, String name, int credits) {
+
     return courseUnitRepository
         .save(
             JCourseUnit.builder()
@@ -194,7 +292,12 @@ class SemesterAverageSimulationIT extends FacadeIT {
         .getId();
   }
 
+  // ==============================================================
+  // Course Unit <-> Course
+  // ==============================================================
+
   private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
+
     courseUnitCourseRepository.save(new JCourseUnitCourse(courseUnitId, course.getId(), credits));
   }
 }

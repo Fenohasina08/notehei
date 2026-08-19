@@ -5,7 +5,6 @@ import com.example.demo.datastructure.ListGrouper;
 import com.example.demo.endpoint.event.model.PojaEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -120,13 +119,7 @@ public class EventProducer<T extends PojaEvent> implements Consumer<Collection<T
 
     @Bean
     public EventBridgeClient getEventBridgeClient() {
-      var builder = EventBridgeClient.builder().region(region);
-      String endpointOverride = System.getenv("AWS_ENDPOINT_URL");
-      if (endpointOverride != null && !endpointOverride.isBlank()) {
-        log.info("Overriding EventBridge endpoint with: {}", endpointOverride);
-        builder.endpointOverride(URI.create(endpointOverride));
-      }
-      return builder.build();
+      return EventBridgeClient.builder().region(region).build();
     }
   }
 }

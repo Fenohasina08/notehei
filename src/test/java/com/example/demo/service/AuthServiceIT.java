@@ -12,6 +12,7 @@ import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.repository.AdminRepository;
 import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TeacherRepository;
+import com.example.demo.repository.TranscriptRepository;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,13 +29,13 @@ class AuthServiceIT extends FacadeIT {
 
   @Autowired private TeacherRepository teacherRepository;
 
+  @Autowired private TranscriptRepository transcriptRepository;
+
   @Autowired private PasswordEncoder passwordEncoder;
 
   @BeforeEach
   void setUp() {
-    adminRepository.deleteAll();
-    studentRepository.deleteAll();
-    teacherRepository.deleteAll();
+    cleanDatabase();
   }
 
   @Test

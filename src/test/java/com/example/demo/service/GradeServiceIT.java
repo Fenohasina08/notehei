@@ -61,21 +61,7 @@ class GradeServiceIT extends FacadeIT {
   @BeforeEach
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
-
-    jdbcTemplate.update("DELETE FROM course_unit_course");
-    courseUnitRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM semester");
-    jdbcTemplate.update("DELETE FROM academic_year");
-    gradeRepository.deleteAll();
-    teachingAssignmentRepository.deleteAll();
-    examRepository.deleteAll();
-    teacherRepository.deleteAll();
-    studentRepository.deleteAll();
-    adminRepository.deleteAll();
-    courseRepository.deleteAll();
-
-    jdbcTemplate.update("DELETE FROM \"group\"");
-    jdbcTemplate.update("DELETE FROM cohort");
+    cleanDatabase();
   }
 
   @Test
@@ -202,25 +188,17 @@ class GradeServiceIT extends FacadeIT {
     var result = gradeService.createGradeByTeacher(grade, teacher.getId());
 
     assertThat(result.id()).isNotNull();
-
     assertThat(result.studentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(result.examId()).isEqualTo(exam.getId());
-
     assertThat(result.value()).isEqualByComparingTo("14.50");
-
     assertThat(result.teacherMatricule()).isEqualTo(teacher.getMatricule());
-
     assertThat(result.adminId()).isNull();
-
     assertThat(result.enteredAt()).isNotNull();
 
     var saved = gradeRepository.findById(result.id()).orElseThrow();
 
     assertThat(saved.getStudentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(saved.getTeacherMatricule()).isEqualTo(teacher.getMatricule());
-
     assertThat(saved.getAdminId()).isNull();
   }
 
@@ -245,25 +223,17 @@ class GradeServiceIT extends FacadeIT {
     var result = gradeService.createGradeByAdmin(grade, admin.getId());
 
     assertThat(result.id()).isNotNull();
-
     assertThat(result.studentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(result.examId()).isEqualTo(exam.getId());
-
     assertThat(result.value()).isEqualByComparingTo("17.00");
-
     assertThat(result.teacherMatricule()).isNull();
-
     assertThat(result.adminId()).isEqualTo(admin.getId());
-
     assertThat(result.enteredAt()).isNotNull();
 
     var saved = gradeRepository.findById(result.id()).orElseThrow();
 
     assertThat(saved.getStudentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(saved.getAdminId()).isEqualTo(admin.getId());
-
     assertThat(saved.getTeacherMatricule()).isNull();
   }
 
@@ -282,12 +252,12 @@ class GradeServiceIT extends FacadeIT {
 
     var semester = createSemester();
     var courseUnit = createCourseUnit(semester, 6);
+
     linkCourseToUnit(courseUnit, courseA, 2);
     linkCourseToUnit(courseUnit, courseB, 4);
 
     var result = gradeService.computeCourseUnitAverage(student.getMatricule(), courseUnit);
 
-    // (10 * 2 + 16 * 4) / (2 + 4) = 14.0
     assertThat(result).isEqualByComparingTo("14.0000");
   }
 
@@ -309,20 +279,22 @@ class GradeServiceIT extends FacadeIT {
 
     var courseA = createCourse();
     var examA = createExam(courseA, JExamType.FINAL_EXAM, "100.00");
+
     createTeacherGrade(student, examA, "12.00");
+
     var unitOne = createCourseUnit(semester, 10);
     linkCourseToUnit(unitOne, courseA, 10);
 
     var courseB = createCourse();
     var examB = createExam(courseB, JExamType.FINAL_EXAM, "100.00");
+
     createTeacherGrade(student, examB, "18.00");
+
     var unitTwo = createCourseUnit(semester, 20);
     linkCourseToUnit(unitTwo, courseB, 20);
 
     var result = gradeService.computeSemesterAverage(student.getMatricule(), semester);
 
-    // unitOne average = 12.0 (credits 10), unitTwo average = 18.0 (credits 20)
-    // (12 * 10 + 18 * 20) / (10 + 20) = 16.0
     assertThat(result).isEqualByComparingTo("16.0000");
   }
 
@@ -386,7 +358,6 @@ class GradeServiceIT extends FacadeIT {
   }
 
   private JExam createExam(JCourse course, JExamType type, String weighting) {
-
     return examRepository.save(
         JExam.builder()
             .courseId(course.getId())
@@ -397,7 +368,6 @@ class GradeServiceIT extends FacadeIT {
   }
 
   private JGrade createTeacherGrade(JStudent student, JExam exam, String value) {
-
     return createTeacherGrade(student, exam, value, createTeacher());
   }
 
@@ -480,6 +450,7 @@ class GradeServiceIT extends FacadeIT {
   }
 
   private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
+
     courseUnitCourseRepository.save(
         new com.example.demo.entity.JCourseUnitCourse(courseUnitId, course.getId(), credits));
   }

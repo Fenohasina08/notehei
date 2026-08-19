@@ -33,13 +33,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class TranscriptIntegrationIT extends FacadeIT {
 
   @Autowired private GradeService gradeService;
+
   @Autowired private GradeRepository gradeRepository;
+
   @Autowired private ExamRepository examRepository;
+
   @Autowired private CourseRepository courseRepository;
+
   @Autowired private CourseUnitRepository courseUnitRepository;
+
   @Autowired private CourseUnitCourseRepository courseUnitCourseRepository;
+
   @Autowired private StudentRepository studentRepository;
+
   @Autowired private TeacherRepository teacherRepository;
+
   @Autowired private DataSource dataSource;
 
   private JdbcTemplate jdbcTemplate;
@@ -47,39 +55,34 @@ class TranscriptIntegrationIT extends FacadeIT {
   @BeforeEach
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
-
-    jdbcTemplate.update("DELETE FROM course_unit_course");
-    courseUnitRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM semester");
-    jdbcTemplate.update("DELETE FROM academic_year");
-    gradeRepository.deleteAll();
-    examRepository.deleteAll();
-    teacherRepository.deleteAll();
-    studentRepository.deleteAll();
-    courseRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM \"group\"");
-    jdbcTemplate.update("DELETE FROM cohort");
+    cleanDatabase();
   }
 
   @Test
   void computeSemesterAverage_shouldReflectStudentGrades() {
     var student = createStudent("Herimamy", "Fenohasina");
+
     var semesterId = createSemester();
 
     var unitProgramming = createCourseUnit(semesterId, "UE-PROG", "Programming", 10);
+
     var java = createCourse("PROG101", "Java Fundamentals");
+
     linkCourseToUnit(unitProgramming, java, 10);
+
     gradeCourse(student, java, "15.00");
 
     var semesterAverage = gradeService.computeSemesterAverage(student.getMatricule(), semesterId);
 
     log.info("=== Semester average verified for student {} ===", student.getMatricule());
+
     log.info("Semester average: {} / 20", semesterAverage);
 
     assertThat(semesterAverage).isEqualByComparingTo("15.0000");
   }
 
   private JStudent createStudent(String firstName, String lastName) {
+
     return studentRepository.save(
         JStudent.builder()
             .firstName(firstName)
@@ -91,6 +94,7 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private JCourse createCourse(String reference, String title) {
+
     return courseRepository.save(
         JCourse.builder()
             .reference(reference + "-" + UUID.randomUUID().toString().substring(0, 4))
@@ -100,6 +104,7 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private UUID createCourseUnit(UUID semesterId, String code, String name, int credits) {
+
     return courseUnitRepository
         .save(
             JCourseUnit.builder()
@@ -112,10 +117,12 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
+
     courseUnitCourseRepository.save(new JCourseUnitCourse(courseUnitId, course.getId(), credits));
   }
 
   private void gradeCourse(JStudent student, JCourse course, String value) {
+
     var exam =
         examRepository.save(
             JExam.builder()
@@ -158,14 +165,22 @@ class TranscriptIntegrationIT extends FacadeIT {
     jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
 
     jdbcTemplate.update(
-        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
+        """
+        INSERT INTO academic_year
+            (id, name, start_year, end_year)
+        VALUES (?, ?, ?, ?)
+        """,
         academicYearId,
         "AY-" + UUID.randomUUID().toString().substring(0, 6),
         2026,
         2027);
 
     jdbcTemplate.update(
-        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
+        """
+        INSERT INTO semester
+            (id, number, cohort_id, academic_year_id)
+        VALUES (?, ?, ?, ?)
+        """,
         semesterId,
         1,
         cohortId,
