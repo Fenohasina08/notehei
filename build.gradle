@@ -40,7 +40,7 @@ configurations {
 
 
 test {
-    maxParallelForks = 1 // forced sequential: shared Neon DB across IT classes causes FK races otherwise
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
     useJUnitPlatform()
     finalizedBy jacocoTestCoverageVerification
 }
@@ -162,6 +162,8 @@ testImplementation 'org.testcontainers:testcontainers'
 testImplementation 'org.testcontainers:postgresql'
 testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 implementation 'org.apache.pdfbox:pdfbox:3.0.8'
+testImplementation 'org.apache.httpcomponents.client5:httpclient5'
+testImplementation 'org.springframework.security:spring-security-test'
 
 
 }
