@@ -37,7 +37,7 @@ public abstract class FacadeIT {
     }
     return jdbcTemplate;
   }
-//test
+
   @DynamicPropertySource
   static void configureProperties(DynamicPropertyRegistry registry) {
     registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
