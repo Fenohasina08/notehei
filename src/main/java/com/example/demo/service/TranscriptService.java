@@ -1,7 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.endpoint.event.EventProducer;
+<<<<<<< HEAD
 import com.example.demo.endpoint.event.model.SendEmailRequested;
+=======
+import com.example.demo.endpoint.event.model.TranscriptRequestedEvent;
+>>>>>>> 5d0c5b6 (chore(service): business services - update application business logic and event services)
 import com.example.demo.entity.JTranscript;
 import com.example.demo.file.bucket.BucketComponent;
 import com.example.demo.file.pdf.TranscriptPdfGenerator;
@@ -21,6 +25,12 @@ import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 
+/**
+ * Main-app side of the transcript flow. Generation itself (PDFBox + S3 upload) happens
+ * asynchronously in the worker app, in {@code TranscriptRequestedEventService}, following the Poja
+ * "asynchronous reply by email" pattern: the request thread only saves a PENDING row and produces
+ * an event — it never blocks on PDF generation or S3 I/O.
+ */
 @Service
 @AllArgsConstructor
 public class TranscriptService {
@@ -28,12 +38,16 @@ public class TranscriptService {
   private final TranscriptRepository transcriptRepository;
   private final TranscriptValidator transcriptValidator;
   private final TranscriptMapper transcriptMapper;
+<<<<<<< HEAD
   private final TranscriptPdfGenerator transcriptPdfGenerator;
   private final BucketComponent bucketComponent;
   private final EventProducer<SendEmailRequested> eventProducer;
   private final StudentRepository studentRepository;
   private final SemesterRepository semesterRepository;
   private final AcademicYearRepository academicYearRepository;
+=======
+  private final EventProducer<TranscriptRequestedEvent> eventProducer;
+>>>>>>> 5d0c5b6 (chore(service): business services - update application business logic and event services)
 
   @SneakyThrows
   public Transcript requestTranscript(
@@ -44,6 +58,7 @@ public class TranscriptService {
         JTranscript.builder().studentId(studentId).semesterId(semesterId).status("PENDING").build();
     var savedEntity = transcriptRepository.save(entity);
 
+<<<<<<< HEAD
     var student =
         studentRepository
             .findById(studentId)
@@ -71,6 +86,15 @@ public class TranscriptService {
             .build();
 
     eventProducer.accept(List.of(emailEvent));
+=======
+    var event =
+        TranscriptRequestedEvent.builder()
+            .transcriptId(savedEntity.getId())
+            .studentId(studentId)
+            .semesterId(semesterId)
+            .build();
+    eventProducer.accept(List.of(event));
+>>>>>>> 5d0c5b6 (chore(service): business services - update application business logic and event services)
 
     return transcriptMapper.toDto(savedEntity);
   }
