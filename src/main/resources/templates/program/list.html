@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parcours — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Parcours')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2>Nouveau parcours</h2>
+    <form th:action="@{/screens/programs}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <label for="code">Code</label>
+      <input type="text" id="code" name="code" required maxlength="10" />
+      <label for="name">Nom</label>
+      <input type="text" id="name" name="name" required maxlength="100" />
+      <button type="submit">Créer</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Parcours existants</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Nom</th></tr></thead>
+      <tbody>
+      <tr th:each="program : ${programs}">
+        <td th:text="${program.code}">INFO</td>
+        <td th:text="${program.name}">Informatique</td>
+      </tr>
+      </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(programs)}">Aucun parcours pour le moment.</p>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

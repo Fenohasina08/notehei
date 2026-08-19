@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Organigramme — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Organigramme')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <div th:each="entry : ${groupsByCohort}">
+    <h2 th:text="'Promotion ' + ${entry.key.entryYear}">Promotion 2024</h2>
+    <ul>
+      <li th:each="group : ${entry.value}">
+        <strong th:text="${group.reference}">G1</strong>
+        <span th:if="${activeProgramByGroup.get(group)} != null">
+          — parcours actif : <span th:text="${activeProgramByGroup.get(group).programId}">-</span>
+        </span>
+        <span th:unless="${activeProgramByGroup.get(group)} != null">— aucun parcours actif</span>
+      </li>
+    </ul>
+    <p th:if="${#lists.isEmpty(entry.value)}">Aucun groupe pour cette promotion.</p>
+  </div>
+  <p th:if="${#maps.isEmpty(groupsByCohort)}">Aucune promotion pour le moment.</p>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

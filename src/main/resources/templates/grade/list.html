@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mes notes — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Notes')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section sec:authorize="hasAnyRole('ADMIN','TEACHER')">
+    <form th:action="@{/screens/grades/list}" method="get">
+      <label for="studentMatricule">Matricule étudiant</label>
+      <input type="text" id="studentMatricule" name="studentMatricule"
+             th:value="${studentMatricule}" placeholder="STD25001" />
+      <button type="submit">Rechercher</button>
+    </form>
+  </section>
+
+  <section th:if="${studentMatricule != null}">
+    <h2 th:text="'Notes de ' + ${studentMatricule}">Notes</h2>
+    <table>
+      <thead><tr><th>Examen</th><th>Note</th><th>Statut</th><th>Saisie le</th></tr></thead>
+      <tbody>
+      <tr th:each="grade : ${grades}">
+        <td th:text="${grade.examId}">-</td>
+        <td th:text="${grade.value}">15.5</td>
+        <td th:text="${grade.status}">SUBMITTED</td>
+        <td th:text="${grade.enteredAt}">-</td>
+      </tr>
+      </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(grades)}">Aucune note enregistrée pour le moment.</p>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Notes manquantes — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Notes manquantes')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2>1. Choisir un cours</h2>
+    <form th:action="@{/screens/grades/dashboard}" method="get">
+      <select name="courseId" onchange="this.form.submit()">
+        <option value="">-- Sélectionner un de vos cours --</option>
+        <option th:each="a : ${assignments}" th:value="${a.courseId}"
+                th:selected="${a.courseId == selectedCourseId}"
+                th:text="${a.courseId}"></option>
+      </select>
+    </form>
+  </section>
+
+  <section th:if="${selectedCourseId != null}">
+    <h2>2. Choisir un examen</h2>
+    <form th:action="@{/screens/grades/dashboard}" method="get">
+      <input type="hidden" name="courseId" th:value="${selectedCourseId}" />
+      <select name="examId" onchange="this.form.submit()">
+        <option value="">-- Sélectionner un examen --</option>
+        <option th:each="exam : ${exams}" th:value="${exam.id}"
+                th:selected="${exam.id == selectedExamId}"
+                th:text="${exam.type} + ' (' + ${exam.weighting} + '%)'"></option>
+      </select>
+    </form>
+  </section>
+
+  <section th:if="${selectedExamId != null}">
+    <h2>Étudiants sans note pour cet examen</h2>
+    <table>
+      <thead><tr><th>Matricule</th><th>Nom</th></tr></thead>
+      <tbody>
+      <tr th:each="m : ${missingGrades}">
+        <td th:text="${m.studentMatricule}">STD25001</td>
+        <td th:text="${m.studentFullName}">Prénom Nom</td>
+      </tr>
+      </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(missingGrades)}">Tous les étudiants ont une note pour cet examen. 🎉</p>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

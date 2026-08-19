@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- Header fragment: page title + connected user -->
+<header th:fragment="header(title)">
+  <h1 th:text="${title}">NoteHEI</h1>
+  <div sec:authorize="isAuthenticated()">
+    Connecté en tant que <span sec:authentication="name">email</span>
+    (<span sec:authentication="authorities">rôle</span>)
+    — <a th:href="@{/logout}">Se déconnecter</a>
+  </div>
+</header>
+
+<!-- Nav fragment: menu entries filtered by role -->
+<nav th:fragment="nav">
+  <ul>
+    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/}">Mes notes</a></li>
+    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/screens/transcripts}">Mes relevés</a></li>
+
+    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades/dashboard}">Notes manquantes</a></li>
+    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades}">Saisir des notes</a></li>
+
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/cohorts}">Promotions</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/semesters}">Semestres</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/groups}">Groupes</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/programs}">Parcours</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/course-units}">UE / Cours</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/teaching-assignments}">Affectations</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/structure/organigramme}">Organigramme</a></li>
+  </ul>
+</nav>
+
+<!-- Footer fragment -->
+<footer th:fragment="footer">
+  <p>&copy; NoteHEI — Gestion de scolarité</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <title>NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='NoteHEI — Gestion de scolarité')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <p sec:authorize="hasRole('STUDENT')">Bienvenue. Utilisez le menu pour consulter vos notes et relevés.</p>
+  <p sec:authorize="hasRole('TEACHER')">Bienvenue. Utilisez le menu pour saisir des notes et suivre les notes manquantes.</p>
+  <p sec:authorize="hasRole('ADMIN')">Bienvenue. Utilisez le menu pour gérer la structure académique.</p>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

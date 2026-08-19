@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cours — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Cours')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2>Nouveau cours</h2>
+    <form th:action="@{/screens/courses}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <label for="reference">Référence</label>
+      <input type="text" id="reference" name="reference" required maxlength="20" />
+      <label for="title">Intitulé</label>
+      <input type="text" id="title" name="title" required maxlength="150" />
+      <label for="coefficient">Coefficient</label>
+      <input type="number" id="coefficient" name="coefficient" step="0.01" min="0.01" required />
+      <button type="submit">Créer</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Cours existants</h2>
+    <table>
+      <thead><tr><th>Référence</th><th>Intitulé</th><th>Coefficient</th></tr></thead>
+      <tbody>
+      <tr th:each="course : ${courses}">
+        <td th:text="${course.reference}">C1</td>
+        <td th:text="${course.title}">Algorithmique</td>
+        <td th:text="${course.coefficient}">2.0</td>
+      </tr>
+      </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(courses)}">Aucun cours pour le moment.</p>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

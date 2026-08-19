@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Détail groupe — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Détail du groupe')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2 th:text="${group.reference}">G1</h2>
+  </section>
+
+  <section>
+    <h3>Assigner un nouveau parcours</h3>
+    <form th:action="@{/screens/groups/{id}/program-history(id=${group.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+      <label for="programId">Parcours</label>
+      <select id="programId" name="programId" required>
+        <option th:each="program : ${programs}" th:value="${program.id}" th:text="${program.name}"></option>
+      </select>
+      <button type="submit">Assigner (à partir d'aujourd'hui)</button>
+    </form>
+    <p><em>Note : assigner un nouveau parcours ferme automatiquement le parcours actif en cours.</em></p>
+  </section>
+
+  <section>
+    <h3>Historique des parcours</h3>
+    <table>
+      <thead><tr><th>Parcours</th><th>Début</th><th>Fin</th></tr></thead>
+      <tbody>
+      <tr th:each="entry : ${history}">
+        <td th:text="${entry.programId}">-</td>
+        <td th:text="${entry.startDate}">-</td>
+        <td th:text="${entry.endDate} ?: 'Actif'">-</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <a th:href="@{/screens/groups}">&larr; Retour aux groupes</a>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

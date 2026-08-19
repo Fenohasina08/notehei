@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <title>Relevés de notes — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Relevés de notes')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2>Générer un relevé</h2>
+    <form th:action="@{/screens/transcripts}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+      <div sec:authorize="hasRole('ADMIN')">
+        <label for="studentId">Identifiant étudiant (UUID)</label>
+        <input type="text" id="studentId" name="studentId" required
+               th:value="${studentId}" placeholder="ex: 3fa85f64-5717-4562-b3fc-2c963f66afa6" />
+      </div>
+
+      <label for="semesterId">Semestre</label>
+      <select id="semesterId" name="semesterId" required>
+        <option th:each="semester : ${semesters}" th:value="${semester.id}"
+                th:text="'Semestre ' + ${semester.number}"></option>
+      </select>
+
+      <button type="submit">Générer le PDF et envoyer par email</button>
+    </form>
+    <p><em>La génération et l'envoi par email se font en arrière-plan ; actualisez la page pour voir le statut évoluer de PENDING à GENERATED.</em></p>
+  </section>
+
+  <section th:if="${studentId != null}">
+    <h2>Relevés existants</h2>
+    <table>
+      <thead><tr><th>Semestre</th><th>Statut</th><th>Généré le</th></tr></thead>
+      <tbody>
+      <tr th:each="t : ${transcripts}">
+        <td th:text="${t.semesterId}">-</td>
+        <td th:text="${t.status}">PENDING</td>
+        <td th:text="${t.generatedAt} ?: '-'">-</td>
+      </tr>
+      </tbody>
+    </table>
+    <p th:if="${#lists.isEmpty(transcripts)}">Aucun relevé demandé pour le moment.</p>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>

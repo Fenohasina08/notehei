@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fiche étudiant — NoteHEI</title>
+</head>
+<body>
+<div th:replace="~{layout/fragments :: header(title='Fiche étudiant')}"></div>
+<div th:replace="~{layout/fragments :: nav}"></div>
+
+<main>
+  <section>
+    <h2 th:text="${student.firstName} + ' ' + ${student.lastName}">Prénom Nom</h2>
+    <p>Matricule : <span th:text="${student.matricule}">STD25001</span></p>
+    <p>Email : <span th:text="${student.email}">email@example.com</span></p>
+  </section>
+
+  <section>
+    <h3>Groupe actuel</h3>
+    <p th:if="${activeMembership != null}" th:text="${activeMembership.groupId}">-</p>
+    <p th:unless="${activeMembership != null}">Aucun groupe actif.</p>
+  </section>
+
+  <section>
+    <h3>Historique des groupes</h3>
+    <table>
+      <thead><tr><th>Groupe</th><th>Début</th><th>Fin</th></tr></thead>
+      <tbody>
+      <tr th:each="m : ${membershipHistory}">
+        <td th:text="${m.groupId}">-</td>
+        <td th:text="${m.startDate}">-</td>
+        <td th:text="${m.endDate} ?: 'Actif'">-</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <a th:href="@{/screens/transcripts}">Voir les relevés de notes</a>
+  </section>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+</body>
+</html>
