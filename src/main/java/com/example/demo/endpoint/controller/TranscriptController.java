@@ -35,18 +35,23 @@ public class TranscriptController {
       @PathVariable UUID semesterId,
       HttpServletRequest httpRequest,
       Authentication authentication) {
+
     var requesterId = extractUserId(httpRequest);
+
     var requesterIsAdmin =
         authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
     var transcript =
         transcriptService.requestTranscript(studentId, semesterId, requesterId, requesterIsAdmin);
+
     var event =
         TranscriptRequested.builder()
             .transcriptId(transcript.id())
             .studentId(studentId)
             .semesterId(semesterId)
             .build();
+
     eventProducer.accept(List.of(event));
 
     return new ResponseEntity<>(transcript, HttpStatus.CREATED);
@@ -54,12 +59,26 @@ public class TranscriptController {
 
   @GetMapping("/student/{studentId}")
   public ResponseEntity<List<Transcript>> listForStudent(@PathVariable UUID studentId) {
+
     return ResponseEntity.ok(transcriptService.getTranscriptsForStudent(studentId));
   }
 
   private UUID extractUserId(HttpServletRequest request) {
+
     var header = request.getHeader("Authorization");
+
+    if (header == null || !header.startsWith("Bearer ")) {
+      throw new IllegalArgumentException("Missing or invalid Authorization header");
+    }
+
     var token = header.substring("Bearer ".length());
+
     return jwtService.extractUserId(token);
+  }
+
+  @GetMapping("/cohort/{cohortId}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+  public ResponseEntity<List<Transcript>> getTranscriptsForCohort(@PathVariable UUID cohortId) {
+    return ResponseEntity.ok(transcriptService.getTranscriptsForCohort(cohortId));
   }
 }

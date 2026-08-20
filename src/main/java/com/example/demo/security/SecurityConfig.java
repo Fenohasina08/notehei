@@ -36,6 +36,7 @@ public class SecurityConfig {
     "/grades/**",
     "/grade-history/**",
     "/transcripts/**",
+    "/diplomas/**",
     "/ping",
     "/health/**",
     "/hello"
@@ -76,6 +77,10 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(HttpMethod.PATCH, "/teachers/**")
                     .hasAnyRole("ADMIN", "TEACHER")
+                    .requestMatchers("/transcripts/**")
+                    .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                    .requestMatchers("/diplomas/**") // <-- Ajouté ici
+                    .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
