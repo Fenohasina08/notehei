@@ -171,7 +171,4 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:3.2.2'
     implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    spring.datasource.hikari.initialization-fail-timeout=-1
-spring.datasource.hikari.connection-timeout=10000
-spring.datasource.hikari.maximum-pool-size=2
 }
