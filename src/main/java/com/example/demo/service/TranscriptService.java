@@ -1,8 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.entity.JStudent;
 import com.example.demo.entity.JTranscript;
 import com.example.demo.mapper.TranscriptMapper;
 import com.example.demo.model.Transcript;
+import com.example.demo.repository.StudentRepository;
 import com.example.demo.repository.TranscriptRepository;
 import com.example.demo.validator.TranscriptValidator;
 import java.time.LocalDateTime;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class TranscriptService {
 
   private final TranscriptRepository transcriptRepository;
+  private final StudentRepository studentRepository;
   private final TranscriptValidator transcriptValidator;
   private final TranscriptMapper transcriptMapper;
 
@@ -50,5 +53,14 @@ public class TranscriptService {
     entity.setGeneratedAt(LocalDateTime.now());
 
     return transcriptMapper.toDto(transcriptRepository.save(entity));
+  }
+
+  public List<Transcript> getTranscriptsForCohort(UUID cohortId) {
+    List<JStudent> students = studentRepository.findByCohortId(cohortId);
+
+    return students.stream()
+        .flatMap(student -> transcriptRepository.findByStudentId(student.getId()).stream())
+        .map(transcriptMapper::toDto)
+        .toList();
   }
 }

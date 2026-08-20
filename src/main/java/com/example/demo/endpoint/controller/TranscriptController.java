@@ -75,4 +75,10 @@ public class TranscriptController {
 
     return jwtService.extractUserId(token);
   }
+
+  @GetMapping("/cohort/{cohortId}")
+  @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+  public ResponseEntity<List<Transcript>> getTranscriptsForCohort(@PathVariable UUID cohortId) {
+    return ResponseEntity.ok(transcriptService.getTranscriptsForCohort(cohortId));
+  }
 }

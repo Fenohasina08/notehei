@@ -33,19 +33,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class TranscriptIntegrationIT extends FacadeIT {
 
   @Autowired private GradeService gradeService;
+  @Autowired private TranscriptService transcriptService;
 
   @Autowired private GradeRepository gradeRepository;
-
   @Autowired private ExamRepository examRepository;
-
   @Autowired private CourseRepository courseRepository;
-
   @Autowired private CourseUnitRepository courseUnitRepository;
-
   @Autowired private CourseUnitCourseRepository courseUnitCourseRepository;
-
   @Autowired private StudentRepository studentRepository;
-
   @Autowired private TeacherRepository teacherRepository;
 
   @Autowired private DataSource dataSource;
@@ -61,28 +56,64 @@ class TranscriptIntegrationIT extends FacadeIT {
   @Test
   void computeSemesterAverage_shouldReflectStudentGrades() {
     var student = createStudent("Herimamy", "Fenohasina");
-
     var semesterId = createSemester();
 
     var unitProgramming = createCourseUnit(semesterId, "UE-PROG", "Programming", 10);
-
     var java = createCourse("PROG101", "Java Fundamentals");
 
     linkCourseToUnit(unitProgramming, java, 10);
-
     gradeCourse(student, java, "15.00");
 
     var semesterAverage = gradeService.computeSemesterAverage(student.getMatricule(), semesterId);
 
     log.info("=== Semester average verified for student {} ===", student.getMatricule());
-
     log.info("Semester average: {} / 20", semesterAverage);
 
     assertThat(semesterAverage).isEqualByComparingTo("15.0000");
   }
 
-  private JStudent createStudent(String firstName, String lastName) {
+  @Test
+  void requestAndRetrieveTranscript_shouldSucceed() {
+    var cohortId = UUID.randomUUID();
+    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
 
+    var student = createStudent("Test", "Transcript");
+    jdbcTemplate.update(
+        "UPDATE " + getStudentTableName() + " SET cohort_id = ? WHERE id = ?",
+        cohortId,
+        student.getId());
+
+    var academicYearId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
+        academicYearId,
+        "AY-" + UUID.randomUUID().toString().substring(0, 6),
+        2026,
+        2027);
+
+    var semesterId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
+        semesterId,
+        1,
+        cohortId,
+        academicYearId);
+
+    var transcript =
+        transcriptService.requestTranscript(student.getId(), semesterId, student.getId(), false);
+
+    assertThat(transcript).isNotNull();
+    assertThat(transcript.status()).isEqualTo("PENDING");
+
+    var cohortTranscripts = transcriptService.getTranscriptsForCohort(cohortId);
+    assertThat(cohortTranscripts).isNotEmpty();
+  }
+
+  private String getStudentTableName() {
+    return "student";
+  }
+
+  private JStudent createStudent(String firstName, String lastName) {
     return studentRepository.save(
         JStudent.builder()
             .firstName(firstName)
@@ -94,7 +125,6 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private JCourse createCourse(String reference, String title) {
-
     return courseRepository.save(
         JCourse.builder()
             .reference(reference + "-" + UUID.randomUUID().toString().substring(0, 4))
@@ -104,7 +134,6 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private UUID createCourseUnit(UUID semesterId, String code, String name, int credits) {
-
     return courseUnitRepository
         .save(
             JCourseUnit.builder()
@@ -117,12 +146,10 @@ class TranscriptIntegrationIT extends FacadeIT {
   }
 
   private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
-
     courseUnitCourseRepository.save(new JCourseUnitCourse(courseUnitId, course.getId(), credits));
   }
 
   private void gradeCourse(JStudent student, JCourse course, String value) {
-
     var exam =
         examRepository.save(
             JExam.builder()
