@@ -231,11 +231,13 @@
 <header th:fragment="header(title)">
   <h1 th:text="${title}">NoteHEI</h1>
 
-  <div sec:authorize="isAuthenticated()">
-    <span class="user-info">
-      Connected as <strong sec:authentication="name">email</strong>
-      (<span sec:authentication="authorities">role</span>)
-    </span>
+  <div sec:authorize="isAuthenticated()" class="auth-actions">
+    <div class="user-badge">
+      <span class="user-text">
+        <span class="user-name" sec:authentication="name">email</span>
+        <span class="user-role" sec:authentication="authorities">role</span>
+      </span>
+    </div>
     <a th:href="@{/logout}" class="btn-logout">Sign out</a>
   </div>
 

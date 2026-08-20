@@ -1,21 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Sign In</title>
+    <title>Connexion</title>
 </head>
 <body>
-<h1>Sign In</h1>
-
+<h1>Connexion</h1>
 <form th:action="@{/login}" method="post">
     <input type="text" name="email" placeholder="Email" />
-    <input type="password" name="password" placeholder="Password" />
-    <button type="submit">Sign In</button>
+    <input type="password" name="password" placeholder="Mot de passe" />
+    <button type="submit">Se connecter</button>
 </form>
-
-<p>
-    Don't have an account?
-    <a th:href="@{/signup}">Sign Up</a>
-</p>
-
 </body>
 </html>
