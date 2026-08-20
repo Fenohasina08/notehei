@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.JDiploma;
+import com.example.demo.entity.JSemester;
 import com.example.demo.entity.JTranscript;
 import com.example.demo.repository.DiplomaRepository;
 import com.example.demo.repository.SemesterRepository;
@@ -8,6 +9,7 @@ import com.example.demo.repository.TranscriptRepository;
 import com.example.demo.validator.DiplomaValidator;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -32,15 +34,18 @@ public class DiplomaService {
 
     List<JTranscript> transcripts = transcriptRepository.findByStudentId(studentId);
 
-    Set<Integer> validatedSemesterNumbers =
+    Set<UUID> semesterIds =
         transcripts.stream()
             .filter(t -> "VALIDATED".equalsIgnoreCase(t.getStatus()))
-            .map(t -> semesterRepository.findById(t.getSemesterId()))
-            .filter(java.util.Optional::isPresent)
-            .map(s -> s.get().getNumber())
+            .map(JTranscript::getSemesterId)
+            .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
-    // Vérification via le Validator
+    Set<Integer> validatedSemesterNumbers =
+        semesterRepository.findAllById(semesterIds).stream()
+            .map(JSemester::getNumber)
+            .collect(Collectors.toSet());
+
     diplomaValidator.validateSemesters(validatedSemesterNumbers);
 
     JDiploma diploma =
