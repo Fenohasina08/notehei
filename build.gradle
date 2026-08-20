@@ -170,6 +170,7 @@ implementation 'org.eclipse.angus:angus-activation:2.0.2'
 implementation 'org.eclipse.angus:angus-mail:2.0.3'
 implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:3.2.2'
 implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
+implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 
 }
