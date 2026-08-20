@@ -142,13 +142,11 @@ public class EventProducer<T extends PojaEvent> implements Consumer<Collection<T
     private final Region region;
 
     public Conf(@Value("eu-west-3") String region) {
-
       this.region = Region.of(region);
     }
 
     @Bean
     public EventBridgeClient getEventBridgeClient() {
-
       return EventBridgeClient.builder().region(region).build();
     }
   }
