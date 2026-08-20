@@ -1,7 +1,5 @@
 package com.example.demo.service;
 
-import com.example.demo.endpoint.event.EventProducer;
-import com.example.demo.endpoint.event.model.TranscriptRequestedEvent;
 import com.example.demo.entity.JTranscript;
 import com.example.demo.mapper.TranscriptMapper;
 import com.example.demo.model.Transcript;
@@ -20,7 +18,6 @@ public class TranscriptService {
   private final TranscriptRepository transcriptRepository;
   private final TranscriptValidator transcriptValidator;
   private final TranscriptMapper transcriptMapper;
-  private final EventProducer<TranscriptRequestedEvent> eventProducer;
 
   public Transcript requestTranscript(
       UUID studentId, UUID semesterId, UUID requesterId, boolean requesterIsAdmin) {
@@ -31,15 +28,6 @@ public class TranscriptService {
         JTranscript.builder().studentId(studentId).semesterId(semesterId).status("PENDING").build();
 
     var savedEntity = transcriptRepository.save(entity);
-
-    var event =
-        TranscriptRequestedEvent.builder()
-            .transcriptId(savedEntity.getId())
-            .studentId(studentId)
-            .semesterId(semesterId)
-            .build();
-
-    eventProducer.accept(List.of(event));
 
     return transcriptMapper.toDto(savedEntity);
   }

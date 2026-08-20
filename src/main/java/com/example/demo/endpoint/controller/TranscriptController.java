@@ -1,5 +1,7 @@
 package com.example.demo.endpoint.controller;
 
+import com.example.demo.endpoint.event.EventProducer;
+import com.example.demo.endpoint.event.model.TranscriptRequested;
 import com.example.demo.model.Transcript;
 import com.example.demo.security.JwtService;
 import com.example.demo.service.TranscriptService;
@@ -24,6 +26,7 @@ public class TranscriptController {
 
   private final TranscriptService transcriptService;
   private final JwtService jwtService;
+  private final EventProducer<TranscriptRequested> eventProducer;
 
   @PostMapping("/student/{studentId}/semester/{semesterId}")
   @PreAuthorize("hasAnyRole('STUDENT','ADMIN')")
@@ -36,9 +39,16 @@ public class TranscriptController {
     var requesterIsAdmin =
         authentication.getAuthorities().stream()
             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
     var transcript =
         transcriptService.requestTranscript(studentId, semesterId, requesterId, requesterIsAdmin);
+    var event =
+        TranscriptRequested.builder()
+            .transcriptId(transcript.id())
+            .studentId(studentId)
+            .semesterId(semesterId)
+            .build();
+    eventProducer.accept(List.of(event));
+
     return new ResponseEntity<>(transcript, HttpStatus.CREATED);
   }
 

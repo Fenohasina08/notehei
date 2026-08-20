@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.example.demo.conf.FacadeIT;
-import com.example.demo.endpoint.event.EventProducer;
-import com.example.demo.endpoint.event.model.TranscriptRequestedEvent;
 import com.example.demo.entity.JAcademicYear;
 import com.example.demo.entity.JSemester;
 import com.example.demo.entity.JStudent;
@@ -19,7 +17,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +31,6 @@ class TranscriptServiceIT extends FacadeIT {
   @Autowired private AcademicYearRepository academicYearRepository;
   @Autowired private TranscriptRepository transcriptRepository;
   @Autowired private EntityManager entityManager;
-
-  @MockBean private EventProducer<TranscriptRequestedEvent> eventProducer;
 
   @Test
   void requestTranscript_shouldPersistAsPending() {
