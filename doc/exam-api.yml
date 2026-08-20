@@ -1,0 +1,159 @@
+paths:
+  /exams:
+    post:
+      operationId: createExam
+      summary: Create an exam
+      description: >
+        Creates an exam for a course. The sum of the weightings of all
+        non-retake exams of the course must not exceed 100%
+        (`ExamValidator`). Teacher or admin only.
+      tags: [Exam]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Exam'
+      responses:
+        '201':
+          description: Exam created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listExamsByCourse
+      summary: List the exams of a course
+      description: Returns the exams of the course identified by `courseId` (required).
+      tags: [Exam]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: query
+          required: true
+          description: UUID of the course.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of exams.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /exams/course/{courseId}/weighting-complete:
+    get:
+      operationId: isCourseWeightingComplete
+      summary: Check that a course weighting structure is complete
+      description: >
+        Returns `true` when the sum of the weightings of all non-retake exams of
+        the course equals exactly 100%, `false` otherwise. Read-only probe.
+      tags: [Exam]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: UUID of the course.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Completeness of the weighting structure.
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /exams/{id}:
+    delete:
+      operationId: deleteExam
+      summary: Delete an exam
+      description: Deletes an exam. Admin only.
+      tags: [Exam]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Exam deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the exam.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ExamType:
+      type: string
+      enum: [CONTINUOUS_ASSESSMENT, FINAL_EXAM, RETAKE]
+      description: >
+        `CONTINUOUS_ASSESSMENT` and `FINAL_EXAM` participate in the 100% weighting
+        budget of a course. `RETAKE` is the catch-up exam: it does not count
+        toward the weighting budget and, if higher, replaces the retained grade.
+
+    Exam:
+      type: object
+      required: [courseId, type, examDate, weighting]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        courseId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/ExamType'
+        examDate:
+          type: string
+          format: date-time
+          example: '2026-01-15T08:00:00Z'
+        weighting:
+          type: number
+          format: double
+          description: >
+            Weighting percentage of the exam within its course (0-100). For
+            non-retake exams the running total must not exceed 100.
+          example: 40

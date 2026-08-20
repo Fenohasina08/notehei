@@ -2,24 +2,185 @@ openapi: 3.1.0
 info:
   title: HEI Academic Records API
   description: >
-    Shared contract for the HEI academic records management project.
+    Shared contract for the HEI academic records management project. The API is
+    stateless and JWT-secured: a single bearer token issued by `POST /auth/login`
+    authenticates across the three separate account tables (Student, Teacher,
+    Admin).
+
     Academic Structure & Administration Module (Valisoa): Security/Auth,
-    AcademicYear, Cohort, Semester, Program, Group, GroupMembership,
-    CourseUnit, Course, TeachingAssignment, Teacher, Admin.
+    AcademicYear, Cohort, Semester, Program, Group, GroupMembership, CourseUnit,
+    Course, TeachingAssignment, Teacher, Admin, Student.
+
     Assessment & Transcripts Module (Fenohasina): Exam, Grade, GradeHistory,
     Transcript.
+
+    All paths share the `ErrorResponse` envelope defined in `error-api.yml`.
   version: 1.0.0
+  license:
+    name: Proprietary
+  contact:
+    name: HEI Academic Affairs Team
 servers:
-  - url: 'https://localhost:8080'
+  - url: http://localhost:8080
+    description: Local development
 
 security:
   - bearerAuth: []
+
+tags:
+  - name: Security
+    description: Authentication and health endpoints.
+  - name: AcademicYear
+    description: Academic Year.
+  - name: Cohort
+    description: Promotion (year of entry).
+  - name: Semester
+    description: Semester, with its 30-credit structure rule.
+  - name: Program
+    description: Journey.
+  - name: Group
+    description: Group of students and its program history.
+  - name: GroupMembership
+    description: A student's membership in a group.
+  - name: CourseUnit
+    description: Course Unit(UE).
+  - name: Course
+    description: Course, and its attachment to course units.
+  - name: TeachingAssignment
+    description: Assigning a teacher to a class for a group.
+  - name: Student
+    description: Student accounts.
+  - name: Teacher
+    description: Teacher accounts.
+  - name: Admin
+    description: Administrator accounts.
+  - name: Exam
+    description: Exam, with its weighting budget rule.
+  - name: Grade
+    description: Notes et average.
+  - name: GradeHistory
+    description: History des modifications de notes.
+  - name: Transcript
+    description: Transcript (PDF generated asynchronously).
 
 paths:
   /ping:
     $ref: './security-api.yml#/paths/~1ping'
   /auth/login:
     $ref: './security-api.yml#/paths/~1auth~1login'
+
+  /academic-years:
+    $ref: './academicyear-api.yml#/paths/~1academic-years'
+  /academic-years/{id}:
+    $ref: './academicyear-api.yml#/paths/~1academic-years~1{id}'
+
+  /cohorts:
+    $ref: './cohort-api.yml#/paths/~1cohorts'
+  /cohorts/{id}:
+    $ref: './cohort-api.yml#/paths/~1cohorts~1{id}'
+
+  /semesters:
+    $ref: './semester-api.yml#/paths/~1semesters'
+  /semesters/{id}:
+    $ref: './semester-api.yml#/paths/~1semesters~1{id}'
+  /semesters/{id}/credit-structure-complete:
+    $ref: './semester-api.yml#/paths/~1semesters~1{id}~1credit-structure-complete'
+
+  /programs:
+    $ref: './program-api.yml#/paths/~1programs'
+  /programs/{id}:
+    $ref: './program-api.yml#/paths/~1programs~1{id}'
+
+  /groups:
+    $ref: './group-api.yml#/paths/~1groups'
+  /groups/{id}:
+    $ref: './group-api.yml#/paths/~1groups~1{id}'
+  /groups/{id}/program-history:
+    $ref: './group-api.yml#/paths/~1groups~1{id}~1program-history'
+  /groups/{id}/program-history/active:
+    $ref: './group-api.yml#/paths/~1groups~1{id}~1program-history~1active'
+
+  /group-memberships:
+    $ref: './groupmembership-api.yml#/paths/~1group-memberships'
+  /group-memberships/student/{studentId}:
+    $ref: './groupmembership-api.yml#/paths/~1group-memberships~1student~1{studentId}'
+  /group-memberships/student/{studentId}/active:
+    $ref: './groupmembership-api.yml#/paths/~1group-memberships~1student~1{studentId}~1active'
+  /group-memberships/group/{groupId}:
+    $ref: './groupmembership-api.yml#/paths/~1group-memberships~1group~1{groupId}'
+
+  /course-units:
+    $ref: './courseunit-api.yml#/paths/~1course-units'
+  /course-units/{id}:
+    $ref: './courseunit-api.yml#/paths/~1course-units~1{id}'
+  /course-units/{id}/complete:
+    $ref: './courseunit-api.yml#/paths/~1course-units~1{id}~1complete'
+  /course-units/{id}/programs/{programId}:
+    $ref: './courseunit-api.yml#/paths/~1course-units~1{id}~1programs~1{programId}'
+
+  /courses:
+    $ref: './course-api.yml#/paths/~1courses'
+  /courses/{id}:
+    $ref: './course-api.yml#/paths/~1courses~1{id}'
+  /courses/course-units/{courseUnitId}/attach:
+    $ref: './course-api.yml#/paths/~1courses~1course-units~1{courseUnitId}~1attach'
+  /courses/course-units/{courseUnitId}/attach/{courseId}:
+    $ref: './course-api.yml#/paths/~1courses~1course-units~1{courseUnitId}~1attach~1{courseId}'
+  /courses/course-units/{courseUnitId}/complete:
+    $ref: './course-api.yml#/paths/~1courses~1course-units~1{courseUnitId}~1complete'
+
+  /teaching-assignments:
+    $ref: './teachingassignment-api.yml#/paths/~1teaching-assignments'
+  /teaching-assignments/{id}:
+    $ref: './teachingassignment-api.yml#/paths/~1teaching-assignments~1{id}'
+
+  /students:
+    $ref: './account-api.yml#/paths/~1students'
+  /students/{id}:
+    $ref: './account-api.yml#/paths/~1students~1{id}'
+  /students/{id}/password:
+    $ref: './account-api.yml#/paths/~1students~1{id}~1password'
+
+  /teachers:
+    $ref: './account-api.yml#/paths/~1teachers'
+  /teachers/{id}:
+    $ref: './account-api.yml#/paths/~1teachers~1{id}'
+  /teachers/{id}/password:
+    $ref: './account-api.yml#/paths/~1teachers~1{id}~1password'
+
+  /admins:
+    $ref: './account-api.yml#/paths/~1admins'
+  /admins/{id}:
+    $ref: './account-api.yml#/paths/~1admins~1{id}'
+  /admins/{id}/password:
+    $ref: './account-api.yml#/paths/~1admins~1{id}~1password'
+
+  /exams:
+    $ref: './exam-api.yml#/paths/~1exams'
+  /exams/course/{courseId}/weighting-complete:
+    $ref: './exam-api.yml#/paths/~1exams~1course~1{courseId}~1weighting-complete'
+  /exams/{id}:
+    $ref: './exam-api.yml#/paths/~1exams~1{id}'
+
+  /grades:
+    $ref: './grade-api.yml#/paths/~1grades'
+  /grades/admin:
+    $ref: './grade-api.yml#/paths/~1grades~1admin'
+  /grades/student/{studentMatricule}:
+    $ref: './grade-api.yml#/paths/~1grades~1student~1{studentMatricule}'
+  /grades/student/{studentMatricule}/course/{courseId}/average:
+    $ref: './grade-api.yml#/paths/~1grades~1student~1{studentMatricule}~1course~1{courseId}~1average'
+  /grades/exam/{examId}/missing:
+    $ref: './grade-api.yml#/paths/~1grades~1exam~1{examId}~1missing'
+
+  /grade-history/{gradeId}:
+    $ref: './gradehistory-api.yml#/paths/~1grade-history~1{gradeId}'
+
+  /transcripts/student/{studentId}/semester/{semesterId}:
+    $ref: './transcript-api.yml#/paths/~1transcripts~1student~1{studentId}~1semester~1{semesterId}'
+  /transcripts/student/{studentId}:
+    $ref: './transcript-api.yml#/paths/~1transcripts~1student~1{studentId}'
+
 components:
   securitySchemes:
     bearerAuth:

@@ -54,7 +54,6 @@ public class CourseUnitService {
     courseUnitProgramRepository.deleteById(new JCourseUnitProgramId(courseUnitId, programId));
   }
 
-  /** Throws if the course unit is missing a program or a course attachment. */
   public void validateComplete(UUID courseUnitId) {
     courseUnitValidator.validateIsComplete(courseUnitId);
   }

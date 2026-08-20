@@ -1,0 +1,231 @@
+paths:
+  /course-units:
+    post:
+      operationId: createCourseUnit
+      summary: Create a course unit (UE)
+      description: Creates a course unit. Admin only.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUnit'
+      responses:
+        '201':
+          description: Course unit created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUnit'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listCourseUnitsBySemester
+      summary: List the course units of a semester
+      description: >
+        Returns the course units attached to the semester identified by
+        `semesterId` (required). All authenticated roles may read course units.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: semesterId
+          in: query
+          required: true
+          description: UUID of the semester.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of course units.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseUnit'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /course-units/{id}:
+    get:
+      operationId: getCourseUnit
+      summary: Get one course unit
+      description: All authenticated roles may read a single course unit.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The course unit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseUnit'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteCourseUnit
+      summary: Delete a course unit
+      description: Deletes a course unit. Admin only.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Course unit deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /course-units/{id}/complete:
+    get:
+      operationId: validateCourseUnitComplete
+      summary: Check that a course unit is publishable
+      description: >
+        Validates that the course unit has at least one program attached and at
+        least one course attached (`CourseUnitValidator`). Fails with 422 if the
+        course unit is not complete. Admin or teacher only.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The course unit is complete.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /course-units/{id}/programs/{programId}:
+    post:
+      operationId: attachProgramToCourseUnit
+      summary: Attach a program to a course unit
+      description: Creates the `course_unit_program` link. Admin only.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID of the course unit.
+          schema:
+            type: string
+            format: uuid
+        - name: programId
+          in: path
+          required: true
+          description: UUID of the program.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Program attached.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+
+    delete:
+      operationId: detachProgramFromCourseUnit
+      summary: Detach a program from a course unit
+      description: Removes the `course_unit_program` link. Admin only.
+      tags: [CourseUnit]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID of the course unit.
+          schema:
+            type: string
+            format: uuid
+        - name: programId
+          in: path
+          required: true
+          description: UUID of the program.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Program detached.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the course unit.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CourseUnit:
+      type: object
+      required: [code, name, credits, semesterId]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        code:
+          type: string
+          example: UE3.1
+        name:
+          type: string
+          example: Advanced Databases
+        credits:
+          type: integer
+          description: >
+            Credits granted by this course unit. The sum of credits of all course
+            units attached to a semester must equal 30.
+          example: 5
+        semesterId:
+          type: string
+          format: uuid

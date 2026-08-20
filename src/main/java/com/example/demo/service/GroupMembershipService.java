@@ -22,11 +22,6 @@ public class GroupMembershipService {
   private final GroupMembershipValidator groupMembershipValidator;
   private final StudentRepository studentRepository;
 
-  /**
-   * Assigns a student to a group starting on {@code startDate}. If the student already has an
-   * active membership (in this group or another), it is closed first — this same path covers both a
-   * normal group change and a "redoublement" (repeating a year in a new group).
-   */
   @Transactional
   public GroupMembership assignToGroup(UUID studentId, UUID groupId, LocalDate startDate) {
     var student =

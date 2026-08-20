@@ -1,0 +1,243 @@
+paths:
+  /courses:
+    post:
+      operationId: createCourse
+      summary: Create a course
+      description: Creates a course. Admin only.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+      responses:
+        '201':
+          description: Course created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listCourses
+      summary: List courses
+      description: All authenticated roles may list courses.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of courses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /courses/{id}:
+    get:
+      operationId: getCourse
+      summary: Get one course
+      description: All authenticated roles may read a single course.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The course.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteCourse
+      summary: Delete a course
+      description: Deletes a course. Admin only.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Course deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /courses/course-units/{courseUnitId}/attach:
+    post:
+      operationId: attachCourseToCourseUnit
+      summary: Attach a course to a course unit
+      description: >
+        Creates the `course_unit_course` link with the number of credits granted
+        by the course. A single attach must not exceed the course unit's remaining
+        credits (`CourseUnitCourseValidator`). Admin only.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseUnitId
+          in: path
+          required: true
+          description: UUID of the course unit.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachCourseRequest'
+      responses:
+        '204':
+          description: Course attached.
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /courses/course-units/{courseUnitId}/attach/{courseId}:
+    delete:
+      operationId: detachCourseFromCourseUnit
+      summary: Detach a course from a course unit
+      description: Removes the `course_unit_course` link. Admin only.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseUnitId
+          in: path
+          required: true
+          description: UUID of the course unit.
+          schema:
+            type: string
+            format: uuid
+        - name: courseId
+          in: path
+          required: true
+          description: UUID of the course.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Course detached.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /courses/course-units/{courseUnitId}/complete:
+    get:
+      operationId: validateCourseUnitCreditsComplete
+      summary: Check that the course-unit credit structure is complete
+      description: >
+        Validates that the sum of credits of every course attached to the course
+        unit equals the course unit's own credits (`CourseUnitCourseValidator`).
+        Fails with 422 if unbalanced. Admin or teacher only.
+      tags: [Course]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseUnitId
+          in: path
+          required: true
+          description: UUID of the course unit.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The credit structure of the course unit is complete.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the course.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Course:
+      type: object
+      required: [reference, title, coefficient]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        reference:
+          type: string
+          description: Stable unique reference of the course.
+          example: INF302
+        title:
+          type: string
+          example: Base de données avancée
+        coefficient:
+          type: number
+          format: double
+          description: Must be strictly greater than 0.
+          example: 2.5
+
+    AttachCourseRequest:
+      type: object
+      required: [courseId, credits]
+      properties:
+        courseId:
+          type: string
+          format: uuid
+        credits:
+          type: integer
+          description: Credits granted by this course inside the course unit.
+          example: 3

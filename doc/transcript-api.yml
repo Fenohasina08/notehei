@@ -1,0 +1,108 @@
+paths:
+  /transcripts/student/{studentId}/semester/{semesterId}:
+    post:
+      operationId: requestTranscript
+      summary: Request a transcript  for a semester
+      description: >
+        Requests the PDF transcript of a student for a semester. The transcript is
+        generated asynchronously: a `TranscriptRequestedEvent` is published, a
+        separate app generates the PDF and uploads it to S3, then the status
+        flips to `GENERATED`. The requester must be the student themselves, or an
+        admin. Returns `201` immediately with the transcript in `PENDING` status.
+      tags: [Transcript]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: UUID of the student the transcript belongs to.
+          schema:
+            type: string
+            format: uuid
+        - name: semesterId
+          in: path
+          required: true
+          description: UUID of the semester.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Transcript requested.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transcript'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /transcripts/student/{studentId}:
+    get:
+      operationId: listTranscriptsForStudent
+      summary: List the transcripts of a student
+      description: Returns every transcript requested for the student.
+      tags: [Transcript]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          description: UUID of the student.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of transcripts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transcript'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    TranscriptStatus:
+      type: string
+      enum: [PENDING, GENERATED]
+      description: >
+        `PENDING`: requested, PDF generation in progress. `GENERATED`: the PDF has
+        been uploaded and `s3Url` is set.
+
+    Transcript:
+      type: object
+      required: [studentId, semesterId, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        studentId:
+          type: string
+          format: uuid
+        semesterId:
+          type: string
+          format: uuid
+        s3Url:
+          type: [string, 'null']
+          format: uri
+          description: Download URL of the generated PDF. `null` while pending.
+        status:
+          $ref: '#/components/schemas/TranscriptStatus'
+        generatedAt:
+          type: [string, 'null']
+          format: date-time
+          description: Set when the PDF is generated. `null` while pending.
+          readOnly: true

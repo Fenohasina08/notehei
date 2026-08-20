@@ -1,0 +1,486 @@
+paths:
+  /students:
+    post:
+      operationId: createStudent
+      summary: Create a student account
+      description: >
+        Creates a student account. The password is hashed with BCrypt; the
+        student's matricule is generated server-side following the `STDyynnn`
+        format. Admin only.
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudent'
+      responses:
+        '201':
+          description: Student account created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /students/{id}:
+    get:
+      operationId: getStudent
+      summary: Get a student account
+      description: >
+        Admin and teacher may read any student. A student may only read their own
+        account (`id` must equal the authenticated account id).
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentIdPath'
+      responses:
+        '200':
+          description: The student account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentResponse'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /students/{id}/password:
+    patch:
+      operationId: changeStudentPassword
+      summary: Change a student password
+      description: >
+        Changes the password of a student account. The caller must be the admin,
+        or the student themselves.
+      tags: [Student]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '204':
+          description: Password updated.
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  # --------------------------------------------------------------------------- Teacher
+  /teachers:
+    post:
+      operationId: createTeacher
+      summary: Create a teacher account
+      description: >
+        Creates a teacher account. The password is hashed with BCrypt; the
+        teacher's matricule is generated server-side. Admin only.
+      tags: [Teacher]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeacher'
+      responses:
+        '201':
+          description: Teacher account created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /teachers/{id}:
+    get:
+      operationId: getTeacher
+      summary: Get a teacher account
+      description: Admin or teacher only.
+      tags: [Teacher]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeacherIdPath'
+      responses:
+        '200':
+          description: The teacher account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /teachers/{id}/password:
+    patch:
+      operationId: changeTeacherPassword
+      summary: Change a teacher password
+      description: >
+        Changes the password of a teacher account. The caller must be the admin,
+        or the teacher themselves.
+      tags: [Teacher]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TeacherIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '204':
+          description: Password updated.
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  # --------------------------------------------------------------------------- Admin
+  /admins:
+    post:
+      operationId: createAdmin
+      summary: Create an admin account
+      description: >
+        Creates an admin account. The password is hashed with BCrypt. Admin only.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAdmin'
+      responses:
+        '201':
+          description: Admin account created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResponse'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /admins/{id}:
+    get:
+      operationId: getAdmin
+      summary: Get an admin account
+      description: Admin only.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AdminIdPath'
+      responses:
+        '200':
+          description: The admin account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminResponse'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /admins/{id}/password:
+    patch:
+      operationId: changeAdminPassword
+      summary: Change an admin password
+      description: Changes the password of an admin account. Admin only.
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AdminIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+      responses:
+        '204':
+          description: Password updated.
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+components:
+  parameters:
+    StudentIdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the student account.
+      schema:
+        type: string
+        format: uuid
+    TeacherIdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the teacher account.
+      schema:
+        type: string
+        format: uuid
+    AdminIdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the admin account.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CreateStudent:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+          example: Ando
+        lastName:
+          type: string
+          maxLength: 100
+          example: Rakoto
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: student@hei.school
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+          maxLength: 255
+
+    StudentResponse:
+      type: object
+      required: [id, firstName, lastName, email, matricule]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+        matricule:
+          type: string
+          description: Generated server-side, `STDyynnn` shape.
+          example: STD24201
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTeacher:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+          example: Hery
+        lastName:
+          type: string
+          maxLength: 100
+          example: Rasolofonirina
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: teacher@hei.school
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+          maxLength: 255
+
+    TeacherResponse:
+      type: object
+      required: [id, firstName, lastName, email, matricule]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+        matricule:
+          type: string
+          description: Generated server-side.
+          example: TCH241
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateAdmin:
+      type: object
+      required: [firstName, lastName, email, password]
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+          example: Admin
+        lastName:
+          type: string
+          maxLength: 100
+          example: Principal
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: admin@hei.school
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+          maxLength: 255
+
+    AdminResponse:
+      type: object
+      required: [id, firstName, lastName, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        birthdate:
+          type: [string, 'null']
+          format: date
+        address:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ChangePassword:
+      type: object
+      required: [oldPassword, newPassword]
+      properties:
+        oldPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 100

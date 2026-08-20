@@ -1,0 +1,116 @@
+paths:
+  /cohorts:
+    post:
+      operationId: createCohort
+      summary: Create a cohort (promotion)
+      description: Creates a cohort identified by its entry year. Admin only.
+      tags: [Cohort]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Cohort'
+      responses:
+        '201':
+          description: Cohort created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listCohorts
+      summary: List cohorts
+      description: All authenticated roles may list cohorts.
+      tags: [Cohort]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of cohorts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cohort'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /cohorts/{id}:
+    get:
+      operationId: getCohort
+      summary: Get one cohort
+      description: All authenticated roles may read a single cohort.
+      tags: [Cohort]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The cohort.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteCohort
+      summary: Delete a cohort
+      description: Deletes a cohort. Admin only.
+      tags: [Cohort]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Cohort deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the cohort.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Cohort:
+      type: object
+      required: [entryYear]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        entryYear:
+          type: integer
+          description: Year the promotion entered the school.
+          example: 2024

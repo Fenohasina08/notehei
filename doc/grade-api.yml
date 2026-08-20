@@ -1,0 +1,246 @@
+paths:
+  /grades:
+    post:
+      operationId: createGradeByTeacher
+      summary: Record a grade as a teacher
+      description: >
+        Records a grade for a student on an exam. The authenticated teacher must
+        own a teaching assignment on the exam's course
+        (`GradeValidator.validateTeacherOwnsExam`). The author is derived from the
+        bearer token; it is never taken from the request body. Teacher only.
+      tags: [Grade]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Grade'
+      responses:
+        '201':
+          description: Grade recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /grades/admin:
+    post:
+      operationId: createGradeByAdmin
+      summary: Record a grade as an admin
+      description: >
+        Records a grade for a student on an exam. The admin id is derived from the
+        bearer token; it is never taken from the request body. Admin only.
+      tags: [Grade]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Grade'
+      responses:
+        '201':
+          description: Grade recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /grades/student/{studentMatricule}:
+    get:
+      operationId: listGradesForStudent
+      summary: List the grades of a student
+      description: >
+        Returns every grade recorded for the student identified by `studentMatricule`
+        (`STDyynnn` shape). Any authenticated role can call it; the fine-grained
+        ownership check (student requesting only their own grades) is the caller's
+        responsibility on the client side in v1.
+      tags: [Grade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentMatricule
+          in: path
+          required: true
+          description: Matricule of the student, `STDyynnn` shape.
+          schema:
+            type: string
+            pattern: '^STD\d{2}\d{3}$'
+            example: STD24201
+      responses:
+        '200':
+          description: List of grades.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /grades/student/{studentMatricule}/course/{courseId}/average:
+    get:
+      operationId: computeRetainedGrade
+      summary: Compute the retained grade of a course
+      description: >
+        Computes the retained grade of a student for a course: the sum of the
+        weighted non-retake exam grades, replaced by the retake grade when the
+        retake value is higher (`MAX(note_normale, note_rattrapage)`).
+      tags: [Grade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: studentMatricule
+          in: path
+          required: true
+          description: Matricule of the student, `STDyynnn` shape.
+          schema:
+            type: string
+            pattern: '^STD\d{2}\d{3}$'
+            example: STD24201
+        - name: courseId
+          in: path
+          required: true
+          description: UUID of the course.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: The retained grade on a 0-20 scale.
+          content:
+            application/json:
+              schema:
+                type: number
+                format: double
+                example: 14.75
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /grades/exam/{examId}/missing:
+    get:
+      operationId: missingGradesForExam
+      summary: List the students missing a grade for an exam
+      description: >
+        Lists the students that belong to a group this teacher teaches (for the
+        exam's course) but who don't yet have a grade for the exam. Powers the
+        "missing grades" dashboard. Teacher or admin only; for a teacher the scope
+        is restricted to their own assignments.
+      tags: [Grade]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          description: UUID of the exam.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of missing grades.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MissingGrade'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  schemas:
+    GradeStatus:
+      type: string
+      description: Free-form status carried by a grade row (e.g. PUBLISHED, PROVISIONAL).
+      example: PUBLISHED
+
+    Grade:
+      type: object
+      required: [studentMatricule, examId, value]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        studentMatricule:
+          type: string
+          pattern: '^STD\d{2}\d{3}$'
+          example: STD24201
+        examId:
+          type: string
+          format: uuid
+        value:
+          type: number
+          format: double
+          description: Grade on a 0-20 scale.
+          example: 14.5
+        status:
+          $ref: '#/components/schemas/GradeStatus'
+        enteredAt:
+          type: string
+          format: date-time
+          description: Set server-side when the grade is recorded.
+          readOnly: true
+        teacherMatricule:
+          type: [string, 'null']
+          description: >
+            Author, set server-side. Exactly one of `teacherMatricule` /
+            `adminId` is present.
+          readOnly: true
+        adminId:
+          type: [string, 'null']
+          format: uuid
+          description: >
+            Author, set server-side. Exactly one of `teacherMatricule` /
+            `adminId` is present.
+          readOnly: true
+
+    MissingGrade:
+      type: object
+      required: [studentId, studentMatricule, studentFullName]
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        studentMatricule:
+          type: string
+          pattern: '^STD\d{2}\d{3}$'
+          example: STD24201
+        studentFullName:
+          type: string
+          example: Ando Rakoto

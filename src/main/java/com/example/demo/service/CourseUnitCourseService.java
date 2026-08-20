@@ -35,9 +35,6 @@ public class CourseUnitCourseService {
     return courseUnitCourseRepository.findByCourseUnitIdIn(List.of(courseUnitId));
   }
 
-  /**
-   * Throws if the sum of attached course credits doesn't exactly equal the course unit's credits.
-   */
   public void validateComplete(UUID courseUnitId) {
     courseUnitCourseValidator.validateCreditsMatchCourseUnit(courseUnitId);
   }

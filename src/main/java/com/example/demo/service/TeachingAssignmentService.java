@@ -51,7 +51,6 @@ public class TeachingAssignmentService {
         .orElseThrow(() -> new TeachingAssignmentNotFoundException(id));
   }
 
-  /** Read-only check used by Fenohasina's GradeValidator: does this teacher own this course? */
   public boolean teacherHasAssignmentForCourse(UUID teacherId, UUID courseId) {
     return teachingAssignmentRepository.existsByTeacherIdAndCourseId(teacherId, courseId);
   }

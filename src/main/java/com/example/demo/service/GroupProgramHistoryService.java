@@ -19,11 +19,6 @@ public class GroupProgramHistoryService {
   private final GroupProgramHistoryMapper groupProgramHistoryMapper;
   private final GroupProgramHistoryValidator groupProgramHistoryValidator;
 
-  /**
-   * Assigns a new program to a group starting on {@code startDate}. If the group already has an
-   * active program, it is closed (its {@code endDate} set to {@code startDate}) so the "one active
-   * program per group" invariant always holds.
-   */
   @Transactional
   public GroupProgramHistory assignProgram(UUID groupId, UUID programId, LocalDate startDate) {
     groupProgramHistoryValidator.validateDates(startDate, null);

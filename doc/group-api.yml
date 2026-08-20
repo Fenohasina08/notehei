@@ -1,0 +1,251 @@
+paths:
+  /groups:
+    post:
+      operationId: createGroup
+      summary: Create a student group
+      description: Creates a group within a cohort. Admin only.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentGroup'
+      responses:
+        '201':
+          description: Group created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGroup'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listGroups
+      summary: List student groups
+      description: >
+        Lists groups. If `cohortId` is provided, only the groups of that cohort
+        are returned. All authenticated roles may list groups.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cohortId
+          in: query
+          required: false
+          description: Filter groups by cohort.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of groups.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StudentGroup'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /groups/{id}:
+    get:
+      operationId: getGroup
+      summary: Get one group
+      description: All authenticated roles may read a single group.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StudentGroup'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteGroup
+      summary: Delete a group
+      description: Deletes a group. Admin only.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Group deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /groups/{id}/program-history:
+    post:
+      operationId: assignProgramToGroup
+      summary: Assign a program to a group
+      description: >
+        Opens a new program period for a group starting at `startDate`. The
+        previous active period (if any) must be closed first — a group has at
+        most one active program at any given time. Admin only.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignProgramRequest'
+      responses:
+        '201':
+          description: Program assigned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupProgramHistory'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: getGroupProgramHistory
+      summary: Get the program history of a group
+      description: All authenticated roles may read a group program history.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Program history, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupProgramHistory'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /groups/{id}/program-history/active:
+    get:
+      operationId: getActiveGroupProgram
+      summary: Get the active program of a group
+      description: Returns the currently active program period (no `endDate`) of a group.
+      tags: [Group]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The active program period.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupProgramHistory'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the group.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    StudentGroup:
+      type: object
+      required: [reference, cohortId]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        reference:
+          type: string
+          example: G1
+        cohortId:
+          type: string
+          format: uuid
+
+    GroupProgramHistory:
+      type: object
+      required: [groupId, programId, startDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        groupId:
+          type: string
+          format: uuid
+        programId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+          example: '2024-10-01'
+        endDate:
+          type: [string, 'null']
+          format: date
+          description: >
+            Present when the period is closed. `null` while the period is the
+            group's active program. Must be strictly after `startDate`.
+          example: '2025-09-30'
+
+    AssignProgramRequest:
+      type: object
+      required: [programId, startDate]
+      properties:
+        programId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+          example: '2024-10-01'

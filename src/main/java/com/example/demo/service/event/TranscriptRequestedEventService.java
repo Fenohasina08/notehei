@@ -22,16 +22,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/**
- * Consumes {@link TranscriptRequestedEvent} in the worker (Poja event-driven app): generates the
- * PDF (PDFBox, via {@link TranscriptPdfGenerator}), uploads it to S3 (via {@link BucketComponent}),
- * marks the {@code transcript} row as GENERATED (delegating to {@link
- * TranscriptService#markGenerated}, the single place that owns that transition), then produces a
- * {@link SendEmailRequested} event so the student is notified once the file is ready. Invoked by
- * the generic {@code MailboxEventHandler}/{@code EventServiceInvoker} — no dedicated handler class
- * is needed, this service's name ({@code TranscriptRequestedEvent} + {@code Service}) is enough for
- * it to be located by reflection.
- */
 @Service
 @AllArgsConstructor
 @Slf4j
@@ -49,7 +39,6 @@ public class TranscriptRequestedEventService implements Consumer<TranscriptReque
   @SneakyThrows
   @Override
   public void accept(TranscriptRequestedEvent event) {
-    // Fail fast, before spending time on PDF generation, if the transcript row is somehow gone.
     if (!transcriptRepository.existsById(event.getTranscriptId())) {
       throw new IllegalStateException("Transcript not found: " + event.getTranscriptId());
     }

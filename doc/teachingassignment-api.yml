@@ -1,0 +1,137 @@
+paths:
+  /teaching-assignments:
+    post:
+      operationId: createTeachingAssignment
+      summary: Assign a teacher to a course for a group
+      description: Creates a teaching assignment. Admin only.
+      tags: [TeachingAssignment]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeachingAssignment'
+      responses:
+        '201':
+          description: Teaching assignment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingAssignment'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listTeachingAssignments
+      summary: List teaching assignments
+      description: >
+        Lists teaching assignments. If `teacherId` is provided, only the
+        assignments of that teacher are returned. Admin or teacher only.
+      tags: [TeachingAssignment]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: teacherId
+          in: query
+          required: false
+          description: Filter assignments by teacher.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of teaching assignments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeachingAssignment'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+
+  /teaching-assignments/{id}:
+    get:
+      operationId: getTeachingAssignment
+      summary: Get one teaching assignment
+      description: Admin or teacher only.
+      tags: [TeachingAssignment]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The teaching assignment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeachingAssignment'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteTeachingAssignment
+      summary: Delete a teaching assignment
+      description: Deletes a teaching assignment. Admin only.
+      tags: [TeachingAssignment]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Teaching assignment deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the teaching assignment.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    TeachingAssignment:
+      type: object
+      required: [teacherId, courseId, groupId]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        teacherId:
+          type: string
+          format: uuid
+        courseId:
+          type: string
+          format: uuid
+        groupId:
+          type: string
+          format: uuid

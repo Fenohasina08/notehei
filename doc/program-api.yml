@@ -1,0 +1,119 @@
+paths:
+  /programs:
+    post:
+      operationId: createProgram
+      summary: Create a program
+      description: Creates a study program. Admin only.
+      tags: [Program]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Program'
+      responses:
+        '201':
+          description: Program created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listPrograms
+      summary: List programs
+      description: All authenticated roles may list programs.
+      tags: [Program]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of programs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Program'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /programs/{id}:
+    get:
+      operationId: getProgram
+      summary: Get one program
+      description: All authenticated roles may read a single program.
+      tags: [Program]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The program.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Program'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteProgram
+      summary: Delete a program
+      description: Deletes a program. Admin only.
+      tags: [Program]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Program deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the program.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Program:
+      type: object
+      required: [code, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        code:
+          type: string
+          description: Stable program code.
+          example: ING
+        name:
+          type: string
+          example: General Engineering

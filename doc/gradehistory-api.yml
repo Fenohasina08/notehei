@@ -1,0 +1,128 @@
+paths:
+  /grade-history/{gradeId}:
+    post:
+      operationId: recordGradeModification
+      summary: Record a modification of a grade
+      description: >
+        Records a grade change in the history (the grade row itself is updated).
+        The author (teacher or admin) is derived from the bearer token and the
+        authenticated role; exactly one author must be resolved
+        (`GradeHistoryValidator`). Teacher or admin only.
+      tags: [GradeHistory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: UUID of the grade being modified.
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModificationRequest'
+      responses:
+        '200':
+          description: Modification recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GradeHistory'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: getGradeHistory
+      summary: List the modification history of a grade
+      description: Returns every recorded modification of the grade, oldest first.
+      tags: [GradeHistory]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: UUID of the grade.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of grade history entries.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradeHistory'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    ModificationRequest:
+      type: object
+      required: [newValue, reason]
+      properties:
+        newValue:
+          type: number
+          format: double
+          description: New grade value on a 0-20 scale.
+          example: 15
+        reason:
+          type: string
+          description: Why the grade was modified.
+          example: Data entry error corrected
+
+    GradeHistory:
+      type: object
+      required: [gradeId, oldValue, newValue, reason, modifiedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        gradeId:
+          type: string
+          format: uuid
+        oldValue:
+          type: number
+          format: double
+          example: 12
+        newValue:
+          type: number
+          format: double
+          example: 15
+        reason:
+          type: string
+          example: Data entry error corrected
+        modifiedAt:
+          type: string
+          format: date-time
+          readOnly: true
+        teacherMatricule:
+          type: [string, 'null']
+          description: >
+            Author, resolved server-side. Exactly one of `teacherMatricule` /
+            `adminId` is present.
+          readOnly: true
+        adminId:
+          type: [string, 'null']
+          format: uuid
+          description: >
+            Author, resolved server-side. Exactly one of `teacherMatricule` /
+            `adminId` is present.
+          readOnly: true

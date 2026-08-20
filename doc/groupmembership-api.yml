@@ -1,0 +1,181 @@
+paths:
+  /group-memberships:
+    post:
+      operationId: assignStudentToGroup
+      summary: Assign a student to a group
+      description: >
+        Opens a new membership for a student in a group starting at `startDate`.
+        A student has at most one active (open-ended) membership at a time; the
+        "repeating a year" case is modeled by closing the current membership and
+        opening a new one. `startDate` is immutable after creation. Admin only.
+      tags: [GroupMembership]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignMembershipRequest'
+      responses:
+        '201':
+          description: Membership created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembership'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+        '409':
+          $ref: './error-api.yml#/components/responses/Conflict'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+  /group-memberships/student/{studentId}:
+    get:
+      operationId: getMembershipHistoryForStudent
+      summary: Get the group membership history of a student
+      description: >
+        Admin and teacher may read any student's history. A student may only read
+        their own (`studentId` must equal the authenticated account id).
+      tags: [GroupMembership]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentIdPath'
+      responses:
+        '200':
+          description: Membership history, oldest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMembership'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /group-memberships/student/{studentId}/active:
+    get:
+      operationId: getActiveMembershipForStudent
+      summary: Get the active membership of a student
+      description: >
+        Returns the currently active membership (no `endDate`) of a student.
+        Same ownership rule as the history endpoint.
+      tags: [GroupMembership]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/StudentIdPath'
+      responses:
+        '200':
+          description: The active membership.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupMembership'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /group-memberships/group/{groupId}:
+    get:
+      operationId: getMembersOfGroup
+      summary: List the members of a group
+      description: Returns the membership rows of a group. Admin or teacher only.
+      tags: [GroupMembership]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/GroupIdPath'
+      responses:
+        '200':
+          description: Memberships of the group.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMembership'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    StudentIdPath:
+      name: studentId
+      in: path
+      required: true
+      description: UUID of the student.
+      schema:
+        type: string
+        format: uuid
+    GroupIdPath:
+      name: groupId
+      in: path
+      required: true
+      description: UUID of the group.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    GroupMembership:
+      type: object
+      required: [studentId, groupId, startDate]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        studentId:
+          type: string
+          format: uuid
+        groupId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+          description: Immutable once the membership has been created.
+          example: '2024-10-01'
+        endDate:
+          type: [string, 'null']
+          format: date
+          description: >
+            Present when the membership is closed. `null` while the membership
+            is active. Must be strictly after `startDate`.
+          example: '2025-06-30'
+
+    AssignMembershipRequest:
+      type: object
+      required: [studentId, groupId, startDate]
+      properties:
+        studentId:
+          type: string
+          format: uuid
+        groupId:
+          type: string
+          format: uuid
+        startDate:
+          type: string
+          format: date
+          example: '2024-10-01'

@@ -1,0 +1,154 @@
+paths:
+  /semesters:
+    post:
+      operationId: createSemester
+      summary: Create a semester
+      description: >
+        Creates a semester within a cohort and academic year. Admin only.
+        The credit structure (sum of attached course-unit credits = 30) is
+        checked separately via the `credit-structure-complete` probe.
+      tags: [Semester]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Semester'
+      responses:
+        '201':
+          description: Semester created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Semester'
+        '400':
+          $ref: './error-api.yml#/components/responses/BadRequest'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '422':
+          $ref: './error-api.yml#/components/responses/UnprocessableEntity'
+
+    get:
+      operationId: listSemesters
+      summary: List semesters
+      description: All authenticated roles may list semesters.
+      tags: [Semester]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of semesters.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Semester'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+
+  /semesters/{id}:
+    get:
+      operationId: getSemester
+      summary: Get one semester
+      description: All authenticated roles may read a single semester.
+      tags: [Semester]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: The semester.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Semester'
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+    delete:
+      operationId: deleteSemester
+      summary: Delete a semester
+      description: Deletes a semester. Admin only.
+      tags: [Semester]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204':
+          description: Semester deleted.
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+  /semesters/{id}/credit-structure-complete:
+    get:
+      operationId: isSemesterCreditStructureComplete
+      summary: Check whether a semester credit structure is complete
+      description: >
+        Returns `true` when the sum of credits of every course unit attached to
+        the semester equals exactly 30 (ECTS-style rule enforced by
+        `SemesterCreditValidator`), `false` otherwise. Read-only probe. Admin or
+        teacher only.
+      tags: [Semester]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200':
+          description: Completeness of the credit structure.
+          content:
+            application/json:
+              schema:
+                type: boolean
+                example: true
+        '401':
+          $ref: './error-api.yml#/components/responses/Unauthorized'
+        '403':
+          $ref: './error-api.yml#/components/responses/Forbidden'
+        '404':
+          $ref: './error-api.yml#/components/responses/NotFound'
+
+components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: UUID of the semester.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Semester:
+      type: object
+      required: [number, cohortId, academicYearId]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Server-generated id.
+          readOnly: true
+        number:
+          type: integer
+          description: Semester number within the course (S1, S2, S3, ...).
+          example: 3
+        cohortId:
+          type: string
+          format: uuid
+        academicYearId:
+          type: string
+          format: uuid

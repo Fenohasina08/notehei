@@ -20,10 +20,11 @@ paths:
       operationId: login
       summary: Authenticate a Student, Teacher or Admin account
       description: >
-        Authenticates against one of the three account tables (Student,
-        Teacher, Admin) by email + password and returns a signed JWT plus the
-        resolved account type and role. The client does not need to know in
-        advance which table the account belongs to.
+        Authenticates against the three separate account tables (Student, Teacher,
+        Admin) by email + password and returns a signed JWT plus the resolved
+        account identity. The client does not need to know in advance which table
+        the account belongs to — lookup order is Admin, Student, Teacher. Passwords
+        are verified with BCrypt; they are never stored or returned in clear.
       tags: [Security]
       security: []
       requestBody:
@@ -53,7 +54,7 @@ components:
       description: >
         JWT issued by POST /auth/login. Must be sent as
         `Authorization: Bearer {token}` on every protected route.
-        Stateless: no server-side session is kept for /api/** routes.
+        Stateless: no server-side session is kept for REST routes.
 
   schemas:
     AccountType:
@@ -66,8 +67,13 @@ components:
 
     Role:
       type: string
-      enum: [ROLE_STUDENT, ROLE_TEACHER, ROLE_ADMIN]
-      description: Authority granted to the authenticated user. Exactly one role per account.
+      enum: [STUDENT, TEACHER, ADMIN]
+      description: >
+        Role carried by the authenticated account, as returned by login
+        (`LoginResponse.role`) and inside the JWT `role` claim. Spring Security
+        prefixes it to build the authority, e.g. role `STUDENT` -> authority
+        `ROLE_STUDENT`, which is what `@PreAuthorize("hasRole('STUDENT')")`
+        checks.
 
     LoginRequest:
       type: object
@@ -81,22 +87,31 @@ components:
           type: string
           format: password
           minLength: 8
+          maxLength: 100
 
     LoginResponse:
       type: object
-      required: [token, accountType, role, expiresAt]
+      required: [token, id, email, firstName, lastName, role]
       properties:
         token:
           type: string
           description: Signed JWT bearer token.
-        accountType:
-          $ref: '#/components/schemas/AccountType'
+          example: eyJhbGciOiJIUzI1NiJ9...
+        id:
+          type: string
+          format: uuid
+          description: Account id (student, teacher or admin).
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+          example: Valisoa
+        lastName:
+          type: string
+          example: Randria
         role:
           $ref: '#/components/schemas/Role'
-        expiresAt:
-          type: string
-          format: date-time
-          description: Token expiration instant.
 
     JwtClaims:
       type: object
@@ -106,15 +121,14 @@ components:
       properties:
         sub:
           type: string
+          format: email
+          description: Account email (JWT subject).
+        id:
+          type: string
           format: uuid
           description: Account id.
-        accountType:
-          $ref: '#/components/schemas/AccountType'
         role:
           $ref: '#/components/schemas/Role'
-        email:
-          type: string
-          format: email
         iat:
           type: integer
           description: Issued-at (epoch seconds).

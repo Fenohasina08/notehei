@@ -75,11 +75,6 @@ public class GradeService {
         .toList();
   }
 
-  /**
-   * Students who belong to a group this teacher is assigned to teach (for the exam's course) but
-   * who don't yet have a grade for this exam. Powers the "missing grades" dashboard — composes
-   * existing repositories only, no new domain rule.
-   */
   public List<MissingGrade> getStudentsMissingGradeForExam(UUID teacherId, UUID examId) {
     var exam = examRepository.findById(examId).orElseThrow();
 
