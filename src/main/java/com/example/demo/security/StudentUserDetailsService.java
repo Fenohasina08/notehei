@@ -7,11 +7,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/**
- * Loads a {@link SecurityUser} from the student account table. One {@link
- * DaoAuthenticationProvider}-backed service per account type (student/teacher/admin), combined in
- * {@link AuthenticationManagerConfig}.
- */
 @Service
 @RequiredArgsConstructor
 public class StudentUserDetailsService implements UserDetailsService {

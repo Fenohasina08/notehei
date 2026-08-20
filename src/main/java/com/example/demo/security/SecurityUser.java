@@ -8,11 +8,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-/**
- * UserDetails implementation shared by Student, Teacher and Admin accounts. Wraps only what Spring
- * Security needs to authenticate/authorize; domain data stays in the account entities
- * (Student/Teacher/Admin), never duplicated here.
- */
 @Getter
 public class SecurityUser implements UserDetails {
 

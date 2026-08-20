@@ -33,7 +33,9 @@ public class SecurityConfig {
     "/courses/**",
     "/teaching-assignments/**",
     "/exams/**",
+    "/grades/**",
     "/grade-history/**",
+    "/transcripts/**",
     "/ping",
     "/health/**",
     "/hello"
@@ -42,6 +44,7 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
+  private final LoginSuccessHandler loginSuccessHandler;
 
   @Bean
   @Order(1)
@@ -94,7 +97,7 @@ public class SecurityConfig {
                     .loginProcessingUrl("/login")
                     .usernameParameter("email")
                     .passwordParameter("password")
-                    .defaultSuccessUrl("/", true)
+                    .successHandler(loginSuccessHandler)
                     .failureUrl("/login?error")
                     .permitAll())
         .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"))
