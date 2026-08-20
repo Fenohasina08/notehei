@@ -94,7 +94,7 @@ public class SecurityConfig {
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/login", "/css/**", "/js/**", "/webjars/**")
+                auth.requestMatchers("/login", "/register/**", "/css/**", "/js/**", "/webjars/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
