@@ -9,6 +9,7 @@ import com.example.demo.exception.InvalidCredentialsException;
 import com.example.demo.exception.StudentNotFoundException;
 import com.example.demo.mapper.StudentMapper;
 import com.example.demo.repository.StudentRepository;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -60,6 +61,10 @@ public class StudentService {
         studentRepository.findByEmail(email).orElseThrow(() -> new StudentNotFoundException(email));
 
     return StudentMapper.toResponseDTO(student);
+  }
+
+  public List<StudentResponseDTO> findAll() {
+    return studentRepository.findAll().stream().map(StudentMapper::toResponseDTO).toList();
   }
 
   public void changePassword(UUID id, ChangePasswordDTO dto) {

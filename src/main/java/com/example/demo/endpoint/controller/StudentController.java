@@ -6,6 +6,7 @@ import com.example.demo.dto.StudentResponseDTO;
 import com.example.demo.service.StudentService;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -55,5 +56,12 @@ public class StudentController {
       @PathVariable UUID id, @Valid @RequestBody ChangePasswordDTO dto) {
     studentService.changePassword(id, dto);
     return ResponseEntity.noContent().build();
+  }
+
+  @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+  @GetMapping
+  public ResponseEntity<List<StudentResponseDTO>> findAll() {
+    List<StudentResponseDTO> students = studentService.findAll();
+    return ResponseEntity.ok(students);
   }
 }
