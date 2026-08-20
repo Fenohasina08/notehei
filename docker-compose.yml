@@ -5,7 +5,7 @@ services:
     ports:
       - "4566:4566" # LocalStack edge port (all mocked AWS services)
     environment:
-      - SERVICES=events # only start EventBridge; add more (e.g. s3,sqs) if needed later
+      - SERVICES=events,sqs,s3,ses
       - DEBUG=1
       - AWS_DEFAULT_REGION=eu-west-3
     volumes:

@@ -5,6 +5,7 @@ import com.example.demo.datastructure.ListGrouper;
 import com.example.demo.endpoint.event.model.PojaEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -112,14 +113,18 @@ public class EventProducer<T extends PojaEvent> implements Consumer<Collection<T
   public static class Conf {
     public static final int MAX_PUT_EVENT_ENTRIES = 10;
     private final Region region;
+    private final URI endpoint;
 
-    public Conf(@Value("eu-west-3") String region) {
+    public Conf(
+        @Value("eu-west-3") String region, @Value("${aws.endpoint-url:}") String endpointUrl) {
       this.region = Region.of(region);
+      this.endpoint = endpointUrl.isBlank() ? null : URI.create(endpointUrl);
     }
 
     @Bean
     public EventBridgeClient getEventBridgeClient() {
-      return EventBridgeClient.builder().region(region).build();
+      var builder = EventBridgeClient.builder().region(region);
+      return endpoint == null ? builder.build() : builder.endpointOverride(endpoint).build();
     }
   }
 }

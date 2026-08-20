@@ -1,6 +1,7 @@
 package com.example.demo.file.bucket;
 
 import com.example.demo.PojaGenerated;
+import java.net.URI;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,14 +23,29 @@ public class BucketConf {
 
   @SneakyThrows
   public BucketConf(
-      @Value("eu-west-3") String regionString, @Value("${aws.s3.bucket}") String bucketName) {
+      @Value("eu-west-3") String regionString,
+      @Value("${aws.s3.bucket}") String bucketName,
+      @Value("${aws.endpoint-url:}") String endpointUrl) {
     this.bucketName = bucketName;
     var region = Region.of(regionString);
-    this.s3TransferManager =
-        S3TransferManager.builder()
-            .s3Client(S3AsyncClient.crtBuilder().region(region).build())
-            .build();
-    this.s3Presigner = S3Presigner.builder().region(region).build();
-    this.s3Client = S3Client.builder().region(region).build();
+    var endpoint = endpointUrl.isBlank() ? null : URI.create(endpointUrl);
+
+    var crtBuilder = S3AsyncClient.crtBuilder().region(region);
+    if (endpoint != null) {
+      crtBuilder.endpointOverride(endpoint).forcePathStyle(true);
+    }
+    this.s3TransferManager = S3TransferManager.builder().s3Client(crtBuilder.build()).build();
+
+    var presignerBuilder = S3Presigner.builder().region(region);
+    if (endpoint != null) {
+      presignerBuilder.endpointOverride(endpoint);
+    }
+    this.s3Presigner = presignerBuilder.build();
+
+    var s3ClientBuilder = S3Client.builder().region(region);
+    if (endpoint != null) {
+      s3ClientBuilder.endpointOverride(endpoint).forcePathStyle(true);
+    }
+    this.s3Client = s3ClientBuilder.build();
   }
 }
