@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.ses.model.RawMessage;
@@ -32,28 +33,45 @@ import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
 @PojaGenerated
 @Component
 @AllArgsConstructor
+@Slf4j
 public class Mailer implements Consumer<Email> {
+
   private final EmailConf emailConf;
   private final FileTyper fileTyper;
 
   @Override
   public void accept(Email email) {
+
     try {
+
       send(email);
+
+      log.info("Email sent successfully to {}", email.to());
+
     } catch (MessagingException | IOException e) {
-      throw new RuntimeException(e);
+
+      log.error("Failed to send email to {}", email.to(), e);
+
+      throw new RuntimeException("Failed to send email", e);
     }
   }
 
   private void send(Email email) throws MessagingException, IOException {
+
     var session = Session.getDefaultInstance(new Properties());
+
     var mimeMessage = toMimeMessage(session, email);
+
     mimeMessage.setContent(toMimeMultipart(email));
 
     var outputStream = new ByteArrayOutputStream();
+
     mimeMessage.writeTo(outputStream);
+
     ByteBuffer byteBuffer = ByteBuffer.wrap(outputStream.toByteArray());
+
     var bytes = new byte[byteBuffer.remaining()];
+
     byteBuffer.get(bytes);
 
     var rawEmailRequest =
@@ -65,46 +83,78 @@ public class Mailer implements Consumer<Email> {
   }
 
   private MimeMessage toMimeMessage(Session session, Email email) throws MessagingException {
+
     var message = new MimeMessage(session);
+
     message.setFrom(new InternetAddress(emailConf.getSesSource()));
+
     message.setRecipients(TO, email.to().toString());
+
     message.setSubject(email.subject(), "UTF-8");
-    message.setRecipients(CC, email.cc().toArray(InternetAddress[]::new));
-    message.setRecipients(BCC, email.bcc().toArray(InternetAddress[]::new));
+
+    if (!email.cc().isEmpty()) {
+
+      message.setRecipients(CC, email.cc().toArray(InternetAddress[]::new));
+    }
+
+    if (!email.bcc().isEmpty()) {
+
+      message.setRecipients(BCC, email.bcc().toArray(InternetAddress[]::new));
+    }
+
     return message;
   }
 
   private MimeMultipart toMimeMultipart(Email email) throws MessagingException {
+
     var htmlPart = new MimeBodyPart();
+
     htmlPart.setContent(
         email.htmlBody() == null ? "" : email.htmlBody(), "text/html; charset=UTF-8");
+
     List<MimeBodyPart> attachmentsAsMimeBodyParts =
         email.attachments().stream().map(this::toMimeBodyPart).toList();
 
     var mimeMultipart = new MimeMultipart("mixed");
+
     mimeMultipart.addBodyPart(htmlPart);
+
     attachmentsAsMimeBodyParts.forEach(mimeBodyPart -> addBodyPart(mimeMultipart, mimeBodyPart));
+
     return mimeMultipart;
   }
 
   private static void addBodyPart(MimeMultipart mimeMultipart, MimeBodyPart mimeBodyPart) {
+
     try {
+
       mimeMultipart.addBodyPart(mimeBodyPart);
+
     } catch (MessagingException e) {
+
       throw new RuntimeException(e);
     }
   }
 
   private MimeBodyPart toMimeBodyPart(File attachment) {
+
     var mimeBodyPart = new MimeBodyPart();
+
     var fileMediaType = String.valueOf(fileTyper.apply(attachment));
+
     try {
+
       DataSource ds =
           new ByteArrayDataSource(Files.readAllBytes(attachment.toPath()), fileMediaType);
+
       mimeBodyPart.setDataHandler(new DataHandler(ds));
+
       mimeBodyPart.setFileName(attachment.getName());
+
       return mimeBodyPart;
+
     } catch (IOException | MessagingException e) {
+
       throw new RuntimeException(e);
     }
   }

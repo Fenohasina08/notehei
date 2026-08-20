@@ -45,6 +45,7 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
   private final CustomAccessDeniedHandler customAccessDeniedHandler;
+  private final LoginSuccessHandler loginSuccessHandler;
 
   @Bean
   @Order(1)
@@ -64,11 +65,11 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/ping", "/health/**")
                     .permitAll()
-                    .requestMatchers("/admins/**")
+                    .requestMatchers("/admins/**", "/programs/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/students", "/teachers")
                     .hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/students/**")
+                    .requestMatchers(HttpMethod.GET, "/students", "/students/**")
                     .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
                     .requestMatchers(HttpMethod.PATCH, "/students/**")
                     .hasAnyRole("ADMIN", "STUDENT")
@@ -83,6 +84,7 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
     return http.build();
   }
 
@@ -93,18 +95,14 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/login", "/css/**", "/js/**", "/webjars/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
+            auth -> auth.requestMatchers("/login").permitAll().anyRequest().authenticated())
         .formLogin(
             form ->
                 form.loginPage("/login")
                     .loginProcessingUrl("/login")
                     .usernameParameter("email")
                     .passwordParameter("password")
-                    .defaultSuccessUrl("/", true)
+                    .successHandler(loginSuccessHandler)
                     .failureUrl("/login?error")
                     .permitAll())
         .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"))
@@ -112,6 +110,7 @@ public class SecurityConfig {
             exceptions ->
                 exceptions.accessDeniedHandler(
                     (request, response, ex) -> response.sendRedirect("/access-denied")));
+
     return http.build();
   }
 }

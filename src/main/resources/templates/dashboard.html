@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        nav {
+            background-color: #34495e;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 0;
+        }
+
+        nav li {
+            flex: 1;
+        }
+
+        nav a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .card p {
+            color: #7f8c8d;
+            margin-bottom: 15px;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #667eea;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #764ba2;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background-color: #2c3e50;
+            color: white;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Notehei</h1>
+    <p>Système de gestion des notes étudiantes</p>
+    <nav>
+        <ul>
+            <li><a href="/" th:href="@{/}">Accueil</a></li>
+            <li><a href="/dashboard" th:href="@{/dashboard}">Dashboard</a></li>
+            <li><a href="/transcripts" th:href="@{/transcripts}">Relevés de notes</a></li>
+            <li><a href="/grades" th:href="@{/grades}">Notes</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+    <h2 th:text="${title}">Dashboard</h2>
+    <p th:text="'Bienvenue ' + ${user}">Bienvenue Utilisateur</p>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <h3>Étudiants</h3>
+            <p>Gestion des étudiants</p>
+            <div class="card-value">0</div>
+            <a href="/api/students" th:href="@{/api/students}" class="btn">Voir</a>
+        </div>
+
+        <div class="card">
+            <h3>Cours</h3>
+            <p>Gestion des cours</p>
+            <div class="card-value">0</div>
+            <a href="/api/courses" th:href="@{/api/courses}" class="btn">Voir</a>
+        </div>
+
+        <div class="card">
+            <h3>Examens</h3>
+            <p>Gestion des examens</p>
+            <div class="card-value">0</div>
+            <a href="/api/exams" th:href="@{/api/exams}" class="btn">Voir</a>
+        </div>
+
+        <div class="card">
+            <h3>Notes</h3>
+            <p>Gestion des notes</p>
+            <div class="card-value">0</div>
+            <a href="/api/grades" th:href="@{/api/grades}" class="btn">Voir</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Notehei - Système de gestion des notes</p>
+</footer>
+</body>
+</html>

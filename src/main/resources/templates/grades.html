@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Notes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        nav {
+            background-color: #34495e;
+            padding: 0;
+            margin-top: 10px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 0;
+        }
+
+        nav li {
+            flex: 1;
+        }
+
+        nav a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #667eea;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #764ba2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background-color: #2c3e50;
+            color: white;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Notehei</h1>
+    <p>Système de gestion des notes étudiantes</p>
+    <nav>
+        <ul>
+            <li><a href="/" th:href="@{/}">Accueil</a></li>
+            <li><a href="/dashboard" th:href="@{/dashboard}">Dashboard</a></li>
+            <li><a href="/transcripts" th:href="@{/transcripts}">Relevés de notes</a></li>
+            <li><a href="/grades" th:href="@{/grades}">Notes</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+    <h2 th:text="${title}">Gestion des notes</h2>
+    <p>Ajout et modification des notes étudiantes</p>
+
+    <div class="form-group">
+        <label for="student">Étudiant :</label>
+        <select id="student" name="student">
+            <option value="">-- Sélectionner un étudiant --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="course">Cours :</label>
+        <select id="course" name="course">
+            <option value="">-- Sélectionner un cours --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="grade">Note :</label>
+        <input type="number" id="grade" name="grade" min="0" max="20" step="0.01">
+    </div>
+
+    <button class="btn">Enregistrer</button>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Étudiant</th>
+            <th>Cours</th>
+            <th>Note</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td colspan="5" style="text-align: center; color: #999;">Aucune note enregistrée</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<footer>
+    <p>&copy; 2026 Notehei - Système de gestion des notes</p>
+</footer>
+</body>
+</html>

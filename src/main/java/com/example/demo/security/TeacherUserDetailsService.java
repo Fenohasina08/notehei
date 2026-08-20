@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-/** Loads a {@link SecurityUser} from the teacher account table. */
 @Service
 @RequiredArgsConstructor
 public class TeacherUserDetailsService implements UserDetailsService {

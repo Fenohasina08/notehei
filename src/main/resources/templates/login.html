@@ -1,14 +1,50 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Connexion</title>
+    <meta charset="UTF-8">
+    <title>Connexion — NoteHEI</title>
 </head>
 <body>
+
 <h1>Connexion</h1>
+
+<div th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+<div th:if="${logoutMessage}" th:text="${logoutMessage}"></div>
+
 <form th:action="@{/login}" method="post">
-    <input type="text" name="email" placeholder="Email" />
-    <input type="password" name="password" placeholder="Mot de passe" />
+
+    <input
+        type="hidden"
+        th:name="${_csrf.parameterName}"
+        th:value="${_csrf.token}"
+    />
+
+    <div>
+        <label for="email">Email</label>
+        <input
+            id="email"
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+        />
+    </div>
+
+    <div>
+        <label for="password">Mot de passe</label>
+        <input
+            id="password"
+            type="password"
+            name="password"
+            placeholder="Mot de passe"
+            required
+        />
+    </div>
+
     <button type="submit">Se connecter</button>
+
 </form>
+
 </body>
 </html>
