@@ -71,6 +71,7 @@ jacocoTestReport {
         html.required = true
     }
     afterEvaluate {
+        // Need to be duplicated like this from jacocoTestCoverageVerification,
         // else display coverageRate is inconsistent with what was computed during coverage...
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
@@ -160,13 +161,16 @@ testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.2'
 testImplementation 'org.testcontainers:testcontainers'
 testImplementation 'org.testcontainers:postgresql'
 testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+implementation 'org.apache.pdfbox:pdfbox:2.0.31'
 testImplementation 'org.apache.httpcomponents.client5:httpclient5'
 testImplementation 'org.springframework.security:spring-security-test'
 implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
  implementation 'org.reflections:reflections:0.10.2'
 implementation 'org.eclipse.angus:angus-activation:2.0.2'
 implementation 'org.eclipse.angus:angus-mail:2.0.3'
-    implementation 'org.apache.pdfbox:pdfbox:2.0.31'
+implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:3.2.2'
+implementation 'org.springframework.boot:spring-boot-starter-web:3.2.2'
+implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 
 }
