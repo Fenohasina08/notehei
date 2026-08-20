@@ -13,23 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
-/**
- * Two independent filter chains, matching the REST vs Thymeleaf split described in task.md:
- *
- * <ul>
- *   <li>{@link #apiSecurityFilterChain} — every existing REST endpoint (stateless JWT, no session,
- *       CSRF disabled, 401/403 responses are JSON via {@link RestAuthenticationEntryPoint}/{@link
- *       CustomAccessDeniedHandler}).
- *   <li>{@link #webSecurityFilterChain} — Thymeleaf pages (session-based form login on {@code
- *       /login}, CSRF enabled — token carried by each {@code <form>} via
- *       thymeleaf-extras-springsecurity6, unauthenticated access redirects to {@code /login}).
- * </ul>
- *
- * Adaptation note: the existing REST controllers are not namespaced under {@code /api/**} (they
- * live at {@code /students}, {@code /teachers}, {@code /exams}, ...), so the API chain matches
- * those explicit paths instead of a generic {@code /api/**} prefix, to avoid renaming every
- * existing controller.
- */
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -50,9 +33,7 @@ public class SecurityConfig {
     "/courses/**",
     "/teaching-assignments/**",
     "/exams/**",
-    "/grades/**",
     "/grade-history/**",
-    "/transcripts/**",
     "/ping",
     "/health/**",
     "/hello"
@@ -106,11 +87,7 @@ public class SecurityConfig {
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
         .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers("/login", "/css/**", "/js/**", "/webjars/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated())
+            auth -> auth.requestMatchers("/login").permitAll().anyRequest().authenticated())
         .formLogin(
             form ->
                 form.loginPage("/login")

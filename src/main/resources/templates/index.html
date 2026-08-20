@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Accueil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .welcome-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 60px 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 500px;
+        }
+
+        .welcome-container h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+
+        .welcome-container p {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .btn-secondary:hover {
+            background-color: #bdc3c7;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<div class="welcome-container">
+    <h1 th:text="${title}">Bienvenue</h1>
+    <p th:text="${message}">Message de bienvenue</p>
+
+    <div class="btn-group">
+        <a href="/dashboard" th:href="@{/dashboard}" class="btn btn-primary">Aller au Dashboard</a>
+        <a href="/api/docs" th:href="@{/api/docs}" class="btn btn-secondary">API Documentation</a>
+    </div>
+</div>
+</body>
+</html>
