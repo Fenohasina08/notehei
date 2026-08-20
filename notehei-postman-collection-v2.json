@@ -1,0 +1,2657 @@
+{
+  "info": {
+    "_postman_id": "ef574b0d-7529-4ea8-bf48-beb16e5a88dc",
+    "name": "NoteHEI - Gestion Utilisateurs (Admin/Teacher/Student)",
+    "description": "Collection de test pour le module Security/JWT de NoteHEI.\n\nOrdre d'exécution recommandé (Run collection, ou dossier par dossier de haut en bas) :\n1. Auth > Login Super Admin -> récupère adminToken\n2. Admins > Create Admin\n3. Students > Create (x5) -> récupère studentXId pour chaque étudiant\n4. Students > Login Student 1 -> récupère studentToken\n5. Teachers > Create (x5) -> récupère teacherXId pour chaque enseignant\n6. Teachers > Login Teacher 1 -> récupère teacherToken\n7. Contrôle d'accès > vérifie les 401/403\n\nLe compte superadmin@notehei.local / ChangeMe123! est seedé par la migration V010__seed_super_admin.sql : c'est le seul moyen de bootstrap un compte ADMIN, puisque POST /admins est lui-même protégé par ROLE_ADMIN.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacherToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student3Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student4Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student5Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher3Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher4Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher5Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student2Token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "teacher2Token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Login - Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@cine-app.test\",\n  \"password\": \"AdminPass123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Compte seedé par V010__seed_super_admin.sql. Point d'entrée obligatoire : c'est le seul admin qui existe avant qu'on en crée d'autres."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Login super admin OK (200)\", () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"token present\", () => pm.expect(json.token).to.be.a('string').and.not.empty);",
+                  "pm.test(\"role is ADMIN\", () => pm.expect(json.role).to.eql('ADMIN'));",
+                  "pm.collectionVariables.set('adminToken', json.token);",
+                  "pm.collectionVariables.set('adminId', json.id);",
+                  ""
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Admins (ROLE_ADMIN requis)",
+      "item": [
+        {
+          "name": "Create Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Rota\",\n  \"lastName\": \"Andriamanantena\",\n  \"email\": \"admin2@notehei.local\",\n  \"password\": \"Admin123!\",\n  \"birthdate\": \"1988-06-10\",\n  \"address\": \"Antananarivo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Réservé à ROLE_ADMIN. Sans le Bearer adminToken (étape 0), renvoie 401."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('adminToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"Create admin -> 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"has id\", () => pm.expect(json.id).to.be.a('string'));",
+                  "pm.collectionVariables.set('adminId', json.id);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Admin by id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admins/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins",
+                "{{adminId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('adminToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Admin by email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admins?email=superadmin@notehei.local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "superadmin@notehei.local"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('adminToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change Admin Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admins/{{adminId}}/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins",
+                "{{adminId}}",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"Admin123!\",\n  \"newPassword\": \"NouveauAdmin123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Exécuter uniquement sur l'admin créé ci-dessus (pas sur le superadmin), sinon son mot de passe change et les requêtes suivantes de ce fichier casseront."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('adminToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Students",
+      "item": [
+        {
+          "name": "2.1 Create (5 étudiants)",
+          "item": [
+            {
+              "name": "Create Student - Andry Rakoto",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Andry\",\n  \"lastName\": \"Rakoto\",\n  \"email\": \"etudiant1@notehei.local\",\n  \"password\": \"Etudiant123!\",\n  \"birthdate\": \"2002-03-14\",\n  \"address\": \"Antananarivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create student Andry -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('student1Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Student - Bako Rasoanaivo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Bako\",\n  \"lastName\": \"Rasoanaivo\",\n  \"email\": \"etudiant2@notehei.local\",\n  \"password\": \"Etudiant123!\",\n  \"birthdate\": \"2001-11-02\",\n  \"address\": \"Antananarivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create student Bako -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('student2Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Student - Voahangy Randria",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Voahangy\",\n  \"lastName\": \"Randria\",\n  \"email\": \"etudiant3@notehei.local\",\n  \"password\": \"Etudiant123!\",\n  \"birthdate\": \"2002-07-21\",\n  \"address\": \"Fianarantsoa\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create student Voahangy -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('student3Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Student - Fenohasina Andria",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Fenohasina\",\n  \"lastName\": \"Andria\",\n  \"email\": \"etudiant4@notehei.local\",\n  \"password\": \"Etudiant123!\",\n  \"birthdate\": \"2003-01-09\",\n  \"address\": \"Toamasina\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create student Fenohasina -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('student4Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Student - Mialy Rabe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Mialy\",\n  \"lastName\": \"Rabe\",\n  \"email\": \"etudiant5@notehei.local\",\n  \"password\": \"Etudiant123!\",\n  \"birthdate\": \"2002-05-30\",\n  \"address\": \"Antsirabe\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create student Mialy -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('student5Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2.2 Read & self-login",
+          "item": [
+            {
+              "name": "Get Student 1 by id (as Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Student 1 by email (as Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/students?email=etudiant1@notehei.local",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students"
+                  ],
+                  "query": [
+                    {
+                      "key": "email",
+                      "value": "etudiant1@notehei.local"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login - Student 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"etudiant1@notehei.local\",\n  \"password\": \"Etudiant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Login student 1 OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"role is STUDENT\", () => pm.expect(json.role).to.eql('STUDENT'));",
+                      "pm.collectionVariables.set('studentToken', json.token);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Student 1 by id (as Student, self)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "description": "SecurityConfig autorise ROLE_STUDENT sur GET /students/{id} sans vérification de propriété : à surveiller si on veut restreindre un étudiant à SA seule fiche plus tard (ce serait alors un GradeValidator-like côté StudentValidator)."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('studentToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK - un étudiant peut lire une fiche étudiant', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "2.3 Password (self-service)",
+          "item": [
+            {
+              "name": "Login - Student 2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"etudiant2@notehei.local\",\n  \"password\": \"Etudiant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Nécessaire pour les tests croisés (student2 essayant d'agir sur student1)."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Login student 2 OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"role is STUDENT\", () => pm.expect(json.role).to.eql('STUDENT'));",
+                      "pm.collectionVariables.set('student2Token', json.token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change Student 1 Password (self) -> 204",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"Etudiant123!\",\n  \"newPassword\": \"NouveauEtudiant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Le student change son PROPRE mot de passe. Non-idempotent : à ne relancer qu'une fois par run complet (comme 'Change Admin Password')."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('studentToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login Student 1 with NEW password -> 200",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"etudiant1@notehei.local\",\n  \"password\": \"NouveauEtudiant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Confirme que le nouveau mot de passe est bien actif. Rafraîchit studentToken (bonne pratique, pas obligatoire techniquement)."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Login with new password OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.collectionVariables.set('studentToken', json.token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change Student 1 Password wrong old password -> 401",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"MauvaisMotDePasse!\",\n  \"newPassword\": \"PeuImporte123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('studentToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('401 Unauthorized - mauvais ancien mot de passe', () => pm.response.to.have.status(401));",
+                      "const json = pm.response.json();",
+                      "pm.test('code INVALID_CREDENTIALS', () => pm.expect(json.code).to.eql('INVALID_CREDENTIALS'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Student 2 tries to change Student 1 password -> 403",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"NouveauEtudiant123!\",\n  \"newPassword\": \"Hack123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Vérifie le @PreAuthorize self-only sur PATCH /students/{id}/password."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('student2Token');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('403 Forbidden - un étudiant ne peut pas changer le mdp d\\'un autre', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Teacher tries to change Student password -> 403",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"NouveauEtudiant123!\",\n  \"newPassword\": \"Hack123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "PATCH /students/** est réservé à ADMIN et STUDENT (self) : un TEACHER doit être bloqué au niveau URL."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('teacherToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('403 Forbidden - un enseignant ne peut pas changer le mdp d\\'un étudiant', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Admin changes Student 2 password -> 204",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/students/{{student2Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "students",
+                    "{{student2Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"Etudiant123!\",\n  \"newPassword\": \"ResetParAdmin123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Un ADMIN peut changer le mot de passe de n'importe quel student (nécessite encore l'ancien mdp dans l'implémentation actuelle)."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Teachers",
+      "item": [
+        {
+          "name": "3.1 Create (5 enseignants)",
+          "item": [
+            {
+              "name": "Create Teacher - Hery Ramanantsoa",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Hery\",\n  \"lastName\": \"Ramanantsoa\",\n  \"email\": \"enseignant1@notehei.local\",\n  \"password\": \"Enseignant123!\",\n  \"birthdate\": \"1985-02-18\",\n  \"address\": \"Antananarivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create teacher Hery -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('teacher1Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Teacher - Tiana Rakotomalala",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Tiana\",\n  \"lastName\": \"Rakotomalala\",\n  \"email\": \"enseignant2@notehei.local\",\n  \"password\": \"Enseignant123!\",\n  \"birthdate\": \"1980-09-05\",\n  \"address\": \"Antananarivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create teacher Tiana -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('teacher2Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Teacher - Naina Rasolofo",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Naina\",\n  \"lastName\": \"Rasolofo\",\n  \"email\": \"enseignant3@notehei.local\",\n  \"password\": \"Enseignant123!\",\n  \"birthdate\": \"1978-12-11\",\n  \"address\": \"Mahajanga\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create teacher Naina -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('teacher3Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Teacher - Lalaina Andriamampionona",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Lalaina\",\n  \"lastName\": \"Andriamampionona\",\n  \"email\": \"enseignant4@notehei.local\",\n  \"password\": \"Enseignant123!\",\n  \"birthdate\": \"1990-04-27\",\n  \"address\": \"Antananarivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create teacher Lalaina -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('teacher4Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Create Teacher - Njaka Rakotondrabe",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"firstName\": \"Njaka\",\n  \"lastName\": \"Rakotondrabe\",\n  \"email\": \"enseignant5@notehei.local\",\n  \"password\": \"Enseignant123!\",\n  \"birthdate\": \"1983-08-16\",\n  \"address\": \"Toliara\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Create teacher Njaka -> 201\", () => pm.response.to.have.status(201));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"matricule generated\", () => pm.expect(json.matricule).to.be.a('string').and.not.empty);",
+                      "pm.collectionVariables.set('teacher5Id', json.id);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.2 Read & self-login",
+          "item": [
+            {
+              "name": "Get Teacher 1 by id (as Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Teacher 1 by email (as Admin)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers?email=enseignant1@notehei.local",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers"
+                  ],
+                  "query": [
+                    {
+                      "key": "email",
+                      "value": "enseignant1@notehei.local"
+                    }
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login - Teacher 1",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"enseignant1@notehei.local\",\n  \"password\": \"Enseignant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "",
+                      "pm.test(\"Login teacher 1 OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"role is TEACHER\", () => pm.expect(json.role).to.eql('TEACHER'));",
+                      "pm.collectionVariables.set('teacherToken', json.token);",
+                      ""
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get Teacher 1 by id (as Teacher, self)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('teacherToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "3.3 Password (self-service)",
+          "item": [
+            {
+              "name": "Login - Teacher 2",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"enseignant2@notehei.local\",\n  \"password\": \"Enseignant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Nécessaire pour les tests croisés (teacher2 essayant d'agir sur teacher1)."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Login teacher 2 OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.test(\"role is TEACHER\", () => pm.expect(json.role).to.eql('TEACHER'));",
+                      "pm.collectionVariables.set('teacher2Token', json.token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change Teacher 1 Password (self) -> 204",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"Enseignant123!\",\n  \"newPassword\": \"NouveauEnseignant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Non-idempotent : à ne relancer qu'une fois par run complet."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('teacherToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login Teacher 1 with NEW password -> 200",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"enseignant1@notehei.local\",\n  \"password\": \"NouveauEnseignant123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Login with new password OK (200)\", () => pm.response.to.have.status(200));",
+                      "const json = pm.response.json();",
+                      "pm.collectionVariables.set('teacherToken', json.token);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change Teacher 1 Password wrong old password -> 401",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"MauvaisMotDePasse!\",\n  \"newPassword\": \"PeuImporte123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('teacherToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('401 Unauthorized - mauvais ancien mot de passe', () => pm.response.to.have.status(401));",
+                      "const json = pm.response.json();",
+                      "pm.test('code INVALID_CREDENTIALS', () => pm.expect(json.code).to.eql('INVALID_CREDENTIALS'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Teacher 2 tries to change Teacher 1 password -> 403",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"NouveauEnseignant123!\",\n  \"newPassword\": \"Hack123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Vérifie le @PreAuthorize self-only sur PATCH /teachers/{id}/password."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('teacher2Token');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('403 Forbidden - un enseignant ne peut pas changer le mdp d\\'un autre', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Student tries to change Teacher password -> 403",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher1Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher1Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"NouveauEnseignant123!\",\n  \"newPassword\": \"Hack123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "PATCH /teachers/** est réservé à ADMIN et TEACHER (self) : un STUDENT doit être bloqué au niveau URL."
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('studentToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('403 Forbidden - un étudiant ne peut pas changer le mdp d\\'un enseignant', () => pm.response.to.have.status(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Admin changes Teacher 2 password -> 204",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/teachers/{{teacher2Id}}/password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "teachers",
+                    "{{teacher2Id}}",
+                    "password"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"oldPassword\": \"Enseignant123!\",\n  \"newPassword\": \"ResetParAdmin123!\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": [],
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const token = pm.collectionVariables.get('adminToken');",
+                      "if (token) {",
+                      "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                      "}"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('204 No Content', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Contrôle d'accès (401 / 403)",
+      "item": [
+        {
+          "name": "GET /students/{id} sans token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students/{{student1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students",
+                "{{student1Id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"401 Unauthorized sans token\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"réponse JSON propre (RestAuthenticationEntryPoint)\", () => {",
+                  "    pm.expect(json.status).to.eql(401);",
+                  "    pm.expect(json.path).to.be.a('string');",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /students en tant qu'Étudiant -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Interdit\",\n  \"email\": \"interdit@notehei.local\",\n  \"password\": \"Test1234!\",\n  \"birthdate\": \"2000-01-01\",\n  \"address\": \"Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Vérifie CustomAccessDeniedHandler : token STUDENT valide (authentifié) mais rôle insuffisant pour POST /students (réservé ADMIN)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('studentToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"403 Forbidden - un étudiant ne peut pas créer d'étudiant\", () => pm.response.to.have.status(403));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"réponse JSON propre (CustomAccessDeniedHandler)\", () => {",
+                  "    pm.expect(json.status).to.eql(403);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /admins en tant qu'Enseignant -> 403",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admins"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Test\",\n  \"lastName\": \"Interdit\",\n  \"email\": \"interdit2@notehei.local\",\n  \"password\": \"Test1234!\",\n  \"birthdate\": \"2000-01-01\",\n  \"address\": \"Test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('teacherToken');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"403 Forbidden - un enseignant ne peut pas créer d'admin\", () => pm.response.to.have.status(403));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login avec mauvais mot de passe -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"etudiant1@notehei.local\",\n  \"password\": \"MauvaisMotDePasse!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "pm.test(\"401 Unauthorized - mauvais mot de passe\", () => pm.response.to.have.status(401));",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /teachers/{id} sans token -> 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teachers/{{teacher1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "teachers",
+                "{{teacher1Id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 Unauthorized sans token\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"réponse JSON propre (RestAuthenticationEntryPoint)\", () => {",
+                  "    pm.expect(json.status).to.eql(401);",
+                  "    pm.expect(json.path).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PATCH /students/{id}/password sans token -> 401",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/students/{{student1Id}}/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students",
+                "{{student1Id}}",
+                "password"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"x\",\n  \"newPassword\": \"y\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 Unauthorized sans token\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /students/{id} en tant qu'un autre étudiant -> 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students/{{student1Id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students",
+                "{{student1Id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Vérifie le @PreAuthorize self-only sur GET /students/{id} (student2 lisant la fiche de student1)."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('student2Token');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden - un étudiant ne peut pas lire une autre fiche\", () => pm.response.to.have.status(403));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"réponse JSON propre (AccessDeniedException handler)\", () => {",
+                  "    pm.expect(json.status).to.eql(403);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /students?email=... en tant qu'un autre étudiant -> 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students?email=etudiant1@notehei.local",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "etudiant1@notehei.local"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('student2Token');",
+                  "if (token) {",
+                  "    pm.request.headers.upsert({ key: 'Authorization', value: 'Bearer ' + token });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403 Forbidden - un étudiant ne peut pas lire une autre fiche par email\", () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login avec email inexistant -> 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"inconnu@notehei.local\",\n  \"password\": \"PeuImporte123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401 Unauthorized - email inconnu\", () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test(\"code INVALID_CREDENTIALS\", () => pm.expect(json.code).to.eql('INVALID_CREDENTIALS'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
