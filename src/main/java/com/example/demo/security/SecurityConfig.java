@@ -13,23 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
-/**
- * Two independent filter chains, matching the REST vs Thymeleaf split described in task.md:
- *
- * <ul>
- *   <li>{@link #apiSecurityFilterChain} — every existing REST endpoint (stateless JWT, no session,
- *       CSRF disabled, 401/403 responses are JSON via {@link RestAuthenticationEntryPoint}/{@link
- *       CustomAccessDeniedHandler}).
- *   <li>{@link #webSecurityFilterChain} — Thymeleaf pages (session-based form login on {@code
- *       /login}, CSRF enabled — token carried by each {@code <form>} via
- *       thymeleaf-extras-springsecurity6, unauthenticated access redirects to {@code /login}).
- * </ul>
- *
- * Adaptation note: the existing REST controllers are not namespaced under {@code /api/**} (they
- * live at {@code /students}, {@code /teachers}, {@code /exams}, ...), so the API chain matches
- * those explicit paths instead of a generic {@code /api/**} prefix, to avoid renaming every
- * existing controller.
- */
 @Configuration
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -53,6 +36,7 @@ public class SecurityConfig {
     "/grades/**",
     "/grade-history/**",
     "/transcripts/**",
+    "/diplomas/**",
     "/ping",
     "/health/**",
     "/hello"
@@ -92,6 +76,10 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(HttpMethod.PATCH, "/teachers/**")
                     .hasAnyRole("ADMIN", "TEACHER")
+                    .requestMatchers("/transcripts/**")
+                    .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                    .requestMatchers("/diplomas/**") // <-- Ajouté ici
+                    .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
