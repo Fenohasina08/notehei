@@ -80,7 +80,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/ping", "/health/**")
                     .permitAll()
-                    .requestMatchers("/admins/**")
+                    .requestMatchers("/admins/**", "/programs/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/students", "/teachers")
                     .hasRole("ADMIN")
@@ -95,6 +95,7 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
     return http.build();
   }
 
@@ -124,6 +125,7 @@ public class SecurityConfig {
             exceptions ->
                 exceptions.accessDeniedHandler(
                     (request, response, ex) -> response.sendRedirect("/access-denied")));
+
     return http.build();
   }
 }
