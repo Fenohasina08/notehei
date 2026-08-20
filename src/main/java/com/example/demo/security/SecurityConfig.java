@@ -51,7 +51,7 @@ public class SecurityConfig {
     "/teaching-assignments/**",
     "/exams/**",
     "/grades/**",
-    "/grade-histories/**",
+    "/grade-history/**",
     "/transcripts/**",
     "/ping",
     "/health/**",
