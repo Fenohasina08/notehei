@@ -224,6 +224,82 @@
       color: #2563eb;
       font-size: 0.875rem;
     }
+    /* ===== Améliorations ===== */
+    header { position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
+    nav { overflow-x: auto; }
+    nav ul { white-space: nowrap; }
+    nav a { border-bottom: 2px solid transparent; }
+    nav a:hover { border-bottom-color: var(--primary); }
+
+    main { max-width: 1000px; }
+    section > h2:first-child { font-size: 1.15rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+
+    .user-badge { display: flex; align-items: center; }
+    .user-text { display: flex; align-items: center; gap: 0.6rem; }
+    .user-name { font-weight: 600; color: var(--text-main); font-size: 0.9rem; }
+    .role-badge { background: #eef2ff; color: var(--primary); border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 700; }
+    .logout-form { display: inline; margin: 0; }
+    .logout-form button.btn-logout { background: transparent; color: #dc2626; padding: 0.4rem 0.75rem; border: 1px solid #fecaca; }
+    .logout-form button.btn-logout:hover { background: #fef2f2; }
+
+    input[type="date"], textarea {
+      padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none;
+    }
+    select { background: #fff; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    tbody tr:hover { background: #f8fafc; }
+    section { overflow-x: auto; }
+    section > p { color: var(--text-muted); font-size: 0.9rem; }
+    section > p:only-child, table + p { text-align: center; padding: 1rem 0 0; }
+
+    footer { margin-top: auto; }
+
+    @media (max-width: 640px) {
+      header, nav { padding-left: 1rem; padding-right: 1rem; }
+      header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      button { width: 100%; }
+      .logout-form button.btn-logout { width: auto; }
+    }
+    /* ===== Améliorations ===== */
+    header { position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgb(0 0 0 / 0.04); }
+    nav { overflow-x: auto; }
+    nav ul { white-space: nowrap; }
+    nav a { border-bottom: 2px solid transparent; }
+    nav a:hover { border-bottom-color: var(--primary); }
+
+    main { max-width: 1000px; }
+    section > h2:first-child { font-size: 1.15rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+
+    .user-badge { display: flex; align-items: center; }
+    .user-text { display: flex; align-items: center; gap: 0.6rem; }
+    .user-name { font-weight: 600; color: var(--text-main); font-size: 0.9rem; }
+    .role-badge { background: #eef2ff; color: var(--primary); border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 700; }
+    .logout-form { display: inline; margin: 0; }
+    .logout-form button.btn-logout { background: transparent; color: #dc2626; padding: 0.4rem 0.75rem; border: 1px solid #fecaca; }
+    .logout-form button.btn-logout:hover { background: #fef2f2; }
+
+    input[type="date"], textarea {
+      padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 1rem; outline: none;
+    }
+    select { background: #fff; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    tbody tr:hover { background: #f8fafc; }
+    section { overflow-x: auto; }
+    section > p { color: var(--text-muted); font-size: 0.9rem; }
+    section > p:only-child, table + p { text-align: center; padding: 1rem 0 0; }
+
+    footer { margin-top: auto; }
+
+    @media (max-width: 640px) {
+      header, nav { padding-left: 1rem; padding-right: 1rem; }
+      header { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+      button { width: 100%; }
+      .logout-form button.btn-logout { width: auto; }
+    }
+
+
   </style>
 </head>
 <body>
@@ -235,31 +311,35 @@
     <div class="user-badge">
       <span class="user-text">
         <span class="user-name" sec:authentication="name">email</span>
-        <span class="user-role" sec:authentication="authorities">role</span>
+        <span class="role-badge" sec:authorize="hasRole('ADMIN')">Admin</span>
+        <span class="role-badge" sec:authorize="hasRole('TEACHER')">Enseignant</span>
+        <span class="role-badge" sec:authorize="hasRole('STUDENT')">Étudiant</span>
       </span>
     </div>
-    <a th:href="@{/logout}" class="btn-logout">Sign out</a>
+    <form th:action="@{/logout}" method="post" class="logout-form">
+      <button type="submit" class="btn-logout">Déconnexion</button>
+    </form>
   </div>
 
   <div sec:authorize="!isAuthenticated()" class="auth-actions">
-    <a th:href="@{/login}" class="btn-login">Login</a>
-    <a th:href="@{/register}" class="btn-register">Create account</a>
+    <a th:href="@{/login}" class="btn-login">Connexion</a>
+    <a th:href="@{/register}" class="btn-register">Créer un compte</a>
   </div>
 </header>
 
 <nav th:fragment="nav">
   <ul>
-    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/}">My Grades</a></li>
-    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/screens/transcripts}">My Transcripts</a></li>
-    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades/dashboard}">Missing Grades</a></li>
-    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades}">Enter Grades</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/cohorts}">Cohorts</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/semesters}">Semesters</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/groups}">Groups</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/programs}">Programs</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/course-units}">Course Units</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/teaching-assignments}">Teaching Assignments</a></li>
-    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/structure/organigramme}">Organigram</a></li>
+    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/}">Mes notes</a></li>
+    <li sec:authorize="hasRole('STUDENT')"><a th:href="@{/screens/transcripts}">Mes relevés</a></li>
+    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades/dashboard}">Notes manquantes</a></li>
+    <li sec:authorize="hasRole('TEACHER')"><a th:href="@{/screens/grades}">Saisir les notes</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/cohorts}">Promotions</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/semesters}">Semestres</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/groups}">Groupes</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/programs}">Parcours</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/course-units}">UE</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/teaching-assignments}">Affectations</a></li>
+    <li sec:authorize="hasRole('ADMIN')"><a th:href="@{/screens/structure/organigramme}">Organigramme</a></li>
   </ul>
 </nav>
 
