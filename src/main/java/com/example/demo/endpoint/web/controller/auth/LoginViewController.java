@@ -24,7 +24,7 @@ public class LoginViewController {
     if (logout != null) {
       model.addAttribute("logoutMessage", "Vous avez été déconnecté.");
     }
-    return "login";
+    return "auth/login";
   }
 
   @GetMapping("/access-denied")
