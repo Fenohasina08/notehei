@@ -1,62 +1,88 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign in — NoteHEI</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, sans-serif;
       background-color: #f8fafc;
       color: #1e293b;
       margin: 0;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      padding: 1rem;
     }
+
     .login-card {
       background: #ffffff;
       padding: 2.5rem;
       border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      box-shadow:
+              0 4px 6px -1px rgb(0 0 0 / 0.1),
+              0 2px 4px -2px rgb(0 0 0 / 0.1);
       width: 100%;
       max-width: 400px;
-      box-sizing: border-box;
     }
+
     h1 {
       margin-top: 0;
+      margin-bottom: 1.5rem;
       font-size: 1.5rem;
       color: #4f46e5;
       text-align: center;
-      margin-bottom: 1.5rem;
     }
+
     form {
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
     }
+
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
     }
+
     label {
       font-weight: 500;
       font-size: 0.875rem;
       color: #64748b;
     }
+
     input {
+      width: 100%;
       padding: 0.75rem;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       font-size: 1rem;
       outline: none;
-      transition: border-color 0.2s;
+      transition:
+              border-color 0.2s,
+              box-shadow 0.2s;
     }
+
     input:focus {
       border-color: #4f46e5;
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
+
+    input:disabled {
+      background-color: #f1f5f9;
+      cursor: not-allowed;
+    }
+
     button[type="submit"] {
       background-color: #4f46e5;
       color: white;
@@ -64,19 +90,30 @@
       border-radius: 8px;
       padding: 0.75rem;
       font-weight: 600;
+      font-size: 1rem;
       cursor: pointer;
       width: 100%;
-      transition: background-color 0.2s;
+      transition:
+              background-color 0.2s,
+              opacity 0.2s;
     }
-    button[type="submit"]:hover {
+
+    button[type="submit"]:hover:not(:disabled) {
       background-color: #4338ca;
     }
+
+    button[type="submit"]:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
     .divider {
       margin: 1.5rem 0;
       border-top: 1px solid #e2e8f0;
       text-align: center;
       position: relative;
     }
+
     .divider span {
       background: #ffffff;
       padding: 0 0.75rem;
@@ -85,6 +122,7 @@
       position: relative;
       top: -0.75rem;
     }
+
     .btn-register {
       display: block;
       text-align: center;
@@ -97,41 +135,296 @@
       font-size: 0.95rem;
       transition: background-color 0.2s;
     }
+
     .btn-register:hover {
       background-color: #e2e8f0;
     }
-    .error { color: #dc2626; font-size: 0.875rem; text-align: center; margin-bottom: 1rem; }
-    .info { color: #2563eb; font-size: 0.875rem; text-align: center; margin-bottom: 1rem; }
+
+    .error {
+      color: #dc2626;
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .info {
+      color: #2563eb;
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .success {
+      color: #16a34a;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .loading {
+      display: none;
+      margin-top: 0.5rem;
+      color: #64748b;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+
+    .loading.visible {
+      display: block;
+    }
   </style>
+
 </head>
+
 <body>
 
 <main class="login-card">
+
   <h1>NoteHEI</h1>
 
-  <p th:if="${errorMessage}" th:text="${errorMessage}" class="error"></p>
-  <p th:if="${logoutMessage}" th:text="${logoutMessage}" class="info"></p>
+  <!-- Message d'erreur provenant de Thymeleaf -->
 
-  <form action="/login" method="post">
+  <p
+          th:if="${errorMessage}"
+          th:text="${errorMessage}"
+          class="error">
+  </p>
+
+  <!-- Message après déconnexion -->
+
+  <p
+          th:if="${logoutMessage}"
+          th:text="${logoutMessage}"
+          class="info">
+  </p>
+
+  <!-- Message affiché par JavaScript -->
+
+  <p
+          id="form-message"
+          class="error"
+          style="display: none;">
+  </p>
+
+  <!--
+    Le formulaire n'est plus envoyé directement vers /login.
+
+    JavaScript intercepte le submit et appelle :
+    POST /auth/login
+  -->
+
+  <form id="login-form">
+
+    ```
     <div class="form-group">
       <label for="email">Email</label>
-      <input type="email" id="email" name="email" required autofocus placeholder="your.email@hei.school" />
+
+      <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autofocus
+              autocomplete="email"
+              placeholder="your.email@hei.school"
+      />
     </div>
 
     <div class="form-group">
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" required placeholder="••••••••" />
+
+      <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              placeholder="••••••••"
+      />
     </div>
 
-    <button type="submit">Sign in</button>
+    <button
+            type="submit"
+            id="login-button">
+      Sign in
+    </button>
+
+    <div
+            id="loading-message"
+            class="loading">
+      Connexion en cours...
+    </div>
+    ```
+
   </form>
 
   <div class="divider">
     <span>or</span>
   </div>
 
-  <a th:href="@{/register}" class="btn-register">Create an account</a>
+  <a
+          th:href="@{/register}"
+          class="btn-register">
+    Create an account </a>
+
 </main>
+
+<!-- ========================================================= -->
+
+<!-- JAVASCRIPT DE CONNEXION                                   -->
+
+<!-- ========================================================= -->
+
+<script>
+  // Récupération des éléments HTML
+  const form = document.getElementById("login-form");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const loginButton = document.getElementById("login-button");
+  const loadingMessage = document.getElementById("loading-message");
+  const formMessage = document.getElementById("form-message");
+
+
+  // Écoute du clic sur "Sign in"
+  form.addEventListener("submit", async function (event) {
+
+    // Empêche le navigateur de faire :
+    // POST /login
+    event.preventDefault();
+
+
+    // Nettoyage des anciens messages
+    formMessage.style.display = "none";
+    formMessage.textContent = "";
+
+
+    // Récupération des valeurs saisies
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+
+    // Désactivation temporaire du formulaire
+    loginButton.disabled = true;
+    emailInput.disabled = true;
+    passwordInput.disabled = true;
+
+    loadingMessage.classList.add("visible");
+
+
+    try {
+
+      // Appel de l'API REST existante
+      const response = await fetch("/auth/login", {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+
+        // Transformation des données du formulaire
+        // en JSON attendu par LoginRequestDTO
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+
+
+      // Lecture de la réponse JSON
+      const data = await response.json();
+
+
+      // Si le serveur retourne une erreur
+      if (!response.ok) {
+
+        formMessage.textContent =
+                "Email ou mot de passe incorrect.";
+
+        formMessage.style.display = "block";
+
+        return;
+      }
+
+
+      // Connexion réussie
+      console.log("Connexion réussie :", data);
+
+
+      // Pour l'instant, on stocke le JWT.
+      // Cela permettra de l'utiliser pour les prochaines requêtes.
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+
+      // On stocke également les informations de l'utilisateur
+      localStorage.setItem(
+              "user",
+              JSON.stringify({
+                id: data.id,
+                email: data.email,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                role: data.role
+              })
+      );
+
+
+      // Message temporaire de confirmation
+      formMessage.className = "success";
+      formMessage.textContent = "Connexion réussie.";
+      formMessage.style.display = "block";
+
+
+      /*
+       * Pour cette première étape, nous ne redirigeons pas encore
+       * l'utilisateur.
+       *
+       * Une fois que nous aurons confirmé que /auth/login fonctionne
+       * correctement sur Lambda, nous pourrons ajouter ici :
+       *
+       * window.location.href = "/";
+       *
+       * ou une redirection selon le rôle de l'utilisateur.
+       */
+
+    } catch (error) {
+
+      // Erreur réseau / Lambda / serveur
+      console.error(
+              "Erreur pendant la connexion :",
+              error
+      );
+
+      formMessage.className = "error";
+      formMessage.textContent =
+              "Impossible de contacter le serveur. Veuillez réessayer.";
+      formMessage.style.display = "block";
+
+    } finally {
+
+      // Réactivation du formulaire
+      loginButton.disabled = false;
+      emailInput.disabled = false;
+      passwordInput.disabled = false;
+
+      loadingMessage.classList.remove("visible");
+    }
+  });
+</script>
 
 </body>
 </html>
