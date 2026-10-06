@@ -2,13 +2,17 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style th:replace="~{layout/fragments :: global-style}"></style>
   <title>Accès refusé — NoteHEI</title>
 </head>
 <body>
-<main class="error-page">
+<main style="text-align:center;margin-top:4rem">
+  <section>
   <h1>403 — Accès refusé</h1>
   <p>Vous n'avez pas les droits nécessaires pour accéder à cette page.</p>
   <a th:href="@{/}">Retour à l'accueil</a>
+  </section>
 </main>
 </body>
 </html>
