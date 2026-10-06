@@ -168,7 +168,6 @@
       <p>Gestion de scolarité</p>
     </div>
 
-    <!-- Message d'erreur après un échec de connexion -->
     <div
             th:if="${errorMessage}"
             class="error-message"
@@ -176,7 +175,6 @@
       Email ou mot de passe incorrect.
     </div>
 
-    <!-- Message après une déconnexion -->
     <div
             th:if="${logoutMessage}"
             class="logout-message"
@@ -184,12 +182,6 @@
       Vous avez été déconnecté.
     </div>
 
-    <!--
-      IMPORTANT :
-      Ce formulaire utilise le login Spring Security.
-      Il doit envoyer les champs "email" et "password"
-      vers /login.
-    -->
     <form method="post" action="/login">
 
       <div class="form-group">
@@ -216,15 +208,6 @@
                 required>
       </div>
 
-      <!--
-        Spring Security CSRF :
-        le token est automatiquement ajouté par Thymeleaf.
-      -->
-      <input
-              type="hidden"
-              th:name="${_csrf.parameterName}"
-              th:value="${_csrf.token}">
-
       <button
               type="submit"
               class="login-button">
@@ -241,151 +224,6 @@
   </div>
 
 </div>
-
-<!-- ========================================================= -->
-
-<!-- JAVASCRIPT DE CONNEXION                                   -->
-
-<!-- ========================================================= -->
-
-<script>
-  // Récupération des éléments HTML
-  const form = document.getElementById("login-form");
-  const emailInput = document.getElementById("email");
-  const passwordInput = document.getElementById("password");
-  const loginButton = document.getElementById("login-button");
-  const loadingMessage = document.getElementById("loading-message");
-  const formMessage = document.getElementById("form-message");
-
-
-  // Écoute du clic sur "Sign in"
-  form.addEventListener("submit", async function (event) {
-
-    // Empêche le navigateur de faire :
-    // POST /login
-    event.preventDefault();
-
-
-    // Nettoyage des anciens messages
-    formMessage.style.display = "none";
-    formMessage.textContent = "";
-
-
-    // Récupération des valeurs saisies
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-
-
-    // Désactivation temporaire du formulaire
-    loginButton.disabled = true;
-    emailInput.disabled = true;
-    passwordInput.disabled = true;
-
-    loadingMessage.classList.add("visible");
-
-
-    try {
-
-      // Appel de l'API REST existante
-      const response = await fetch("/auth/login", {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-
-        // Transformation des données du formulaire
-        // en JSON attendu par LoginRequestDTO
-        body: JSON.stringify({
-          email: email,
-          password: password
-        })
-      });
-
-
-      // Lecture de la réponse JSON
-      const data = await response.json();
-
-
-      // Si le serveur retourne une erreur
-      if (!response.ok) {
-
-        formMessage.textContent =
-                "Email ou mot de passe incorrect.";
-
-        formMessage.style.display = "block";
-
-        return;
-      }
-
-
-      // Connexion réussie
-      console.log("Connexion réussie :", data);
-
-
-      // Pour l'instant, on stocke le JWT.
-      // Cela permettra de l'utiliser pour les prochaines requêtes.
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-
-      // On stocke également les informations de l'utilisateur
-      localStorage.setItem(
-              "user",
-              JSON.stringify({
-                id: data.id,
-                email: data.email,
-                firstName: data.firstName,
-                lastName: data.lastName,
-                role: data.role
-              })
-      );
-
-
-      // Message temporaire de confirmation
-      formMessage.className = "success";
-      formMessage.textContent = "Connexion réussie.";
-      formMessage.style.display = "block";
-
-
-      /*
-       * Pour cette première étape, nous ne redirigeons pas encore
-       * l'utilisateur.
-       *
-       * Une fois que nous aurons confirmé que /auth/login fonctionne
-       * correctement sur Lambda, nous pourrons ajouter ici :
-       *
-       * window.location.href = "/";
-       *
-       * ou une redirection selon le rôle de l'utilisateur.
-       */
-
-    } catch (error) {
-
-      // Erreur réseau / Lambda / serveur
-      console.error(
-              "Erreur pendant la connexion :",
-              error
-      );
-
-      formMessage.className = "error";
-      formMessage.textContent =
-              "Impossible de contacter le serveur. Veuillez réessayer.";
-      formMessage.style.display = "block";
-
-    } finally {
-
-      // Réactivation du formulaire
-      loginButton.disabled = false;
-      emailInput.disabled = false;
-      passwordInput.disabled = false;
-
-      loadingMessage.classList.remove("visible");
-    }
-  });
-</script>
 
 </body>
 </html>
