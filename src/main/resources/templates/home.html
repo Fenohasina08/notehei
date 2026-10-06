@@ -2,20 +2,535 @@
 <html lang="fr"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
   <meta charset="UTF-8" />
-  <title>NoteHEI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteHEI — Tableau de bord</title>
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-main: #f8fafc;
+      --surface: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* =========================
+       MAIN
+       ========================= */
+
+    main {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    /* =========================
+       HERO
+       ========================= */
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(
+              135deg,
+              #4f46e5 0%,
+              #6366f1 100%
+      );
+      color: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgb(79 70 229 / 0.2);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgb(255 255 255 / 0.08);
+      right: -70px;
+      top: -80px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+    }
+
+    .hero-label {
+      display: inline-block;
+      margin-bottom: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgb(255 255 255 / 0.15);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .hero h2 {
+      margin: 0 0 0.75rem;
+      color: white;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      line-height: 1.2;
+    }
+
+    .hero p {
+      margin: 0;
+      color: rgb(255 255 255 / 0.9);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* =========================
+       ROLE BADGE
+       ========================= */
+
+    .role-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .role-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .role-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #eef2ff;
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+
+    .role-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .role-label {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .role-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--success);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    /* =========================
+       QUICK ACCESS
+       ========================= */
+
+    .section-title {
+      margin: 0 0 1rem;
+      font-size: 1.25rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      display: block;
+      padding: 1.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: inherit;
+      transition:
+              transform 0.2s ease,
+              box-shadow 0.2s ease,
+              border-color 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #c7d2fe;
+      box-shadow: 0 8px 20px rgb(15 23 42 / 0.08);
+    }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      background: #eef2ff;
+      color: var(--primary);
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    .empty-message {
+      padding: 1.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-muted);
+    }
+
+    /* =========================
+       RESPONSIVE
+       ========================= */
+
+    @media (max-width: 600px) {
+      main {
+        padding: 2rem 1rem;
+      }
+
+      .hero {
+        padding: 2rem 1.5rem;
+      }
+
+      .role-section {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .status {
+        margin-left: 0;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
+<!-- Header existant -->
 <div th:replace="~{layout/fragments :: header(title='NoteHEI — Gestion de scolarité')}"></div>
+
+<!-- Navigation existante -->
 <div th:replace="~{layout/fragments :: nav}"></div>
 
+
 <main>
-  <p sec:authorize="hasRole('STUDENT')">Bienvenue. Utilisez le menu pour consulter vos notes et relevés.</p>
-  <p sec:authorize="hasRole('TEACHER')">Bienvenue. Utilisez le menu pour saisir des notes et suivre les notes manquantes.</p>
-  <p sec:authorize="hasRole('ADMIN')">Bienvenue. Utilisez le menu pour gérer la structure académique.</p>
+
+  <!-- =========================
+       HERO
+       ========================= -->
+
+  <section class="hero">
+
+    <div class="hero-content">
+
+      <span class="hero-label">
+        TABLEAU DE BORD
+      </span>
+
+      <!-- STUDENT -->
+      <div sec:authorize="hasRole('STUDENT')">
+        <h2>Bienvenue sur NoteHEI 👋</h2>
+        <p>
+          Consultez facilement vos notes, vos résultats et vos relevés
+          depuis votre espace étudiant.
+        </p>
+      </div>
+
+      <!-- TEACHER -->
+      <div sec:authorize="hasRole('TEACHER')">
+        <h2>Bienvenue sur votre espace enseignant 👋</h2>
+        <p>
+          Gérez vos notes, identifiez les notes manquantes et suivez
+          vos activités pédagogiques.
+        </p>
+      </div>
+
+      <!-- ADMIN -->
+      <div sec:authorize="hasRole('ADMIN')">
+        <h2>Bienvenue dans l'administration 👋</h2>
+        <p>
+          Gérez la structure académique, les groupes, les programmes
+          et les affectations pédagogiques de NoteHEI.
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       USER / ROLE
+       ========================= -->
+
+  <section class="role-section">
+
+    <div class="role-info">
+
+      <div class="role-icon">
+        👤
+      </div>
+
+      <div class="role-text">
+
+        <span class="role-label">
+          Compte connecté
+        </span>
+
+        <span
+                class="role-value"
+                sec:authentication="name">
+          email
+        </span>
+
+      </div>
+
+    </div>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      Session active
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       STUDENT
+       ========================= -->
+
+  <section sec:authorize="hasRole('STUDENT')">
+
+    <h2 class="section-title">
+      Mon espace étudiant
+    </h2>
+
+    <div class="cards">
+
+      <a class="card" th:href="@{/}">
+        <div class="card-icon">📊</div>
+
+        <h3>Mes notes</h3>
+
+        <p>
+          Consultez vos notes et vos résultats académiques.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/transcripts}">
+        <div class="card-icon">📄</div>
+
+        <h3>Mes relevés</h3>
+
+        <p>
+          Consultez vos relevés de notes et votre historique académique.
+        </p>
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       TEACHER
+       ========================= -->
+
+  <section sec:authorize="hasRole('TEACHER')">
+
+    <h2 class="section-title">
+      Espace enseignant
+    </h2>
+
+    <div class="cards">
+
+      <a class="card" th:href="@{/screens/grades/dashboard}">
+        <div class="card-icon">⚠️</div>
+
+        <h3>Notes manquantes</h3>
+
+        <p>
+          Identifiez rapidement les notes qui doivent encore être saisies.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/grades}">
+        <div class="card-icon">✏️</div>
+
+        <h3>Saisir les notes</h3>
+
+        <p>
+          Saisissez et mettez à jour les notes de vos étudiants.
+        </p>
+      </a>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       ADMIN
+       ========================= -->
+
+  <section sec:authorize="hasRole('ADMIN')">
+
+    <h2 class="section-title">
+      Administration
+    </h2>
+
+    <div class="cards">
+
+      <a class="card" th:href="@{/screens/cohorts}">
+        <div class="card-icon">👥</div>
+
+        <h3>Cohortes</h3>
+
+        <p>
+          Gérez les différentes cohortes d'étudiants.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/semesters}">
+        <div class="card-icon">📅</div>
+
+        <h3>Semestres</h3>
+
+        <p>
+          Gérez les semestres et les périodes académiques.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/groups}">
+        <div class="card-icon">👨‍👩‍👧‍👦</div>
+
+        <h3>Groupes</h3>
+
+        <p>
+          Gérez les groupes et leurs membres.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/programs}">
+        <div class="card-icon">🎓</div>
+
+        <h3>Programmes</h3>
+
+        <p>
+          Gérez les programmes et parcours académiques.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/course-units}">
+        <div class="card-icon">📚</div>
+
+        <h3>Unités d'enseignement</h3>
+
+        <p>
+          Gérez les unités d'enseignement et leur organisation.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/teaching-assignments}">
+        <div class="card-icon">🧑‍🏫</div>
+
+        <h3>Affectations</h3>
+
+        <p>
+          Gérez les affectations des enseignants aux cours.
+        </p>
+      </a>
+
+
+      <a class="card" th:href="@{/screens/structure/organigramme}">
+        <div class="card-icon">🏢</div>
+
+        <h3>Organigramme</h3>
+
+        <p>
+          Consultez et gérez la structure académique.
+        </p>
+      </a>
+
+    </div>
+
+  </section>
+
+
 </main>
 
+
+<!-- Footer existant -->
 <div th:replace="~{layout/fragments :: footer}"></div>
+
 </body>
 </html>
+
