@@ -112,8 +112,7 @@
   <p th:if="${errorMessage}" th:text="${errorMessage}" class="error"></p>
   <p th:if="${logoutMessage}" th:text="${logoutMessage}" class="info"></p>
 
-  <form th:action="@{/login}" method="post">
-
+  <form action="/login" method="post">
     <div class="form-group">
       <label for="email">Email</label>
       <input type="email" id="email" name="email" required autofocus placeholder="your.email@hei.school" />
