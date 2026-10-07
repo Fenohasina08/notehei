@@ -1,75 +1,214 @@
 <!DOCTYPE html>
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
   <title>Inscription — NoteHEI</title>
 
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-      Roboto, sans-serif;
-      background-color: #f8fafc;
-      color: #1e293b;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-light: #eef2ff;
+
+      --background: #f8fafc;
+      --surface: #ffffff;
+
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+
+      --border: #e2e8f0;
+
+      --danger: #dc2626;
+      --danger-background: #fef2f2;
+      --danger-border: #fecaca;
+
+      --success: #16a34a;
+
+      --radius: 8px;
     }
 
-    .register-card {
-      background: #ffffff;
-      padding: 2.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1);
-      width: 100%;
-      max-width: 440px;
+    * {
       box-sizing: border-box;
     }
 
-    h1 {
-      margin-top: 0;
-      font-size: 1.5rem;
-      color: #4f46e5;
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family:
+              system-ui,
+              -apple-system,
+              BlinkMacSystemFont,
+              "Segoe UI",
+              Roboto,
+              sans-serif;
+
+      background-color: var(--background);
+      color: var(--text-main);
+
+      min-height: 100vh;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 1.5rem;
+    }
+
+    /* =========================
+       CARD PRINCIPALE
+       ========================= */
+
+    .register-card {
+      width: 100%;
+      max-width: 460px;
+
+      background-color: var(--surface);
+
+      border: 1px solid var(--border);
+      border-radius: 12px;
+
+      padding: 2.25rem;
+
+      box-shadow:
+              0 10px 25px rgb(0 0 0 / 0.08);
+    }
+
+    /* =========================
+       EN-TÊTE
+       ========================= */
+
+    .register-header {
       text-align: center;
+
+      margin-bottom: 1.75rem;
+    }
+
+    .register-header h1 {
+      margin: 0 0 0.5rem;
+
+      color: var(--primary);
+
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .register-header p {
+      margin: 0;
+
+      color: var(--text-muted);
+
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* =========================
+       MESSAGE D'ERREUR GLOBAL
+       ========================= */
+
+    .top-error {
+      margin-bottom: 1.25rem;
+
+      padding: 0.75rem 0.9rem;
+
+      border: 1px solid var(--danger-border);
+      border-radius: var(--radius);
+
+      background-color: var(--danger-background);
+
+      color: var(--danger);
+
+      font-size: 0.875rem;
+      line-height: 1.45;
+    }
+
+    .top-error:empty {
+      display: none;
+    }
+
+    /* =========================
+       ONGLETS
+       ========================= */
+
+    .tabs-container {
       margin-bottom: 1.5rem;
+    }
+
+    /*
+     * Les radios sont cachés visuellement
+     * mais restent utilisables par le CSS.
+     */
+
+    .tab-radio {
+      position: absolute;
+
+      opacity: 0;
+      pointer-events: none;
     }
 
     .tabs {
       display: flex;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 1.5rem;
-    }
 
-    .tabs input[type="radio"] {
-      display: none;
+      width: 100%;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      overflow: hidden;
     }
 
     .tabs label {
       flex: 1;
+
+      padding: 0.7rem 0.75rem;
+
       text-align: center;
-      padding: 0.65rem;
+
       cursor: pointer;
-      font-weight: 600;
+
       font-size: 0.9rem;
-      color: #64748b;
-      background: #f1f5f9;
-      transition: background-color 0.2s, color 0.2s;
+      font-weight: 600;
+
+      color: var(--text-muted);
+
+      background-color: #f1f5f9;
+
+      transition:
+              background-color 0.2s ease,
+              color 0.2s ease;
     }
 
-    #tab-student:checked ~ .tabs label[for="tab-student"],
-    #tab-teacher:checked ~ .tabs label[for="tab-teacher"] {
-      background: #4f46e5;
-      color: white;
+    .tabs label:hover {
+      background-color: #e2e8f0;
     }
+
+    #tab-student:checked ~ .tabs-container .tabs label[for="tab-student"],
+    #tab-teacher:checked ~ .tabs-container .tabs label[for="tab-teacher"] {
+      background-color: var(--primary);
+      color: #ffffff;
+    }
+
+    /* =========================
+       FORMULAIRES
+       ========================= */
 
     .form-panel {
       display: none;
+
+      flex-direction: column;
+
+      gap: 1.05rem;
     }
 
     #tab-student:checked ~ .form-student {
@@ -80,80 +219,206 @@
       display: flex;
     }
 
-    form {
-      flex-direction: column;
-      gap: 1.1rem;
-    }
+    /* =========================
+       GROUPES DE CHAMPS
+       ========================= */
 
     .form-group {
       display: flex;
+
       flex-direction: column;
+
       gap: 0.4rem;
     }
 
-    label.field-label {
-      font-weight: 500;
-      font-size: 0.85rem;
-      color: #64748b;
+    .field-label {
+      display: block;
+
+      color: var(--text-main);
+
+      font-size: 0.875rem;
+      font-weight: 600;
     }
 
-    input {
-      padding: 0.7rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
+    /* =========================
+       INPUTS
+       ========================= */
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="date"] {
+      width: 100%;
+
+      padding: 0.75rem 0.8rem;
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+
+      background-color: #ffffff;
+
+      color: var(--text-main);
+
+      font-family: inherit;
       font-size: 0.95rem;
+
       outline: none;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
+
+      transition:
+              border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              background-color 0.2s ease;
+    }
+
+    input::placeholder {
+      color: #94a3b8;
+    }
+
+    input:hover {
+      border-color: #cbd5e1;
     }
 
     input:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: var(--primary);
+
+      box-shadow:
+              0 0 0 3px rgb(79 70 229 / 0.1);
     }
 
+    input:invalid:not(:placeholder-shown) {
+      border-color: var(--danger);
+    }
+
+    /* =========================
+       ERREURS DE VALIDATION
+       ========================= */
+
+    .error {
+      margin: 0;
+
+      color: var(--danger);
+
+      font-size: 0.8rem;
+
+      line-height: 1.4;
+    }
+
+    /* =========================
+       BOUTON
+       ========================= */
+
     button[type="submit"] {
-      background-color: #4f46e5;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
       width: 100%;
-      margin-top: 0.25rem;
-      transition: background-color 0.2s;
+
+      margin-top: 0.35rem;
+
+      padding: 0.8rem 1rem;
+
+      border: none;
+      border-radius: var(--radius);
+
+      background-color: var(--primary);
+      color: #ffffff;
+
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition:
+              background-color 0.2s ease,
+              transform 0.1s ease;
     }
 
     button[type="submit"]:hover {
-      background-color: #4338ca;
+      background-color: var(--primary-hover);
     }
+
+    button[type="submit"]:active {
+      transform: translateY(1px);
+    }
+
+    button[type="submit"]:focus-visible {
+      outline: 3px solid rgb(79 70 229 / 0.2);
+      outline-offset: 2px;
+    }
+
+    /* =========================
+       LIEN RETOUR
+       ========================= */
 
     .back-link {
       display: block;
+
+      margin-top: 1.5rem;
+
       text-align: center;
-      margin-top: 1.25rem;
-      color: #64748b;
+
+      color: var(--text-muted);
+
       font-size: 0.875rem;
+
       text-decoration: none;
+
+      transition: color 0.2s ease;
     }
 
     .back-link:hover {
-      color: #4f46e5;
+      color: var(--primary);
     }
 
-    .error {
-      color: #dc2626;
-      font-size: 0.8rem;
-      margin: -0.2rem 0 0;
+    .back-link:focus-visible {
+      outline: 3px solid rgb(79 70 229 / 0.2);
+      outline-offset: 3px;
+
+      border-radius: 4px;
     }
 
-    .top-error {
-      color: #dc2626;
-      font-size: 0.875rem;
-      text-align: center;
-      margin-bottom: 1rem;
+    /* =========================
+       PETITE NOTE
+       ========================= */
+
+    .required-info {
+      margin-top: 0.25rem;
+
+      color: var(--text-muted);
+
+      font-size: 0.75rem;
+      line-height: 1.4;
     }
+
+    /* =========================
+       MOBILE
+       ========================= */
+
+    @media (max-width: 520px) {
+
+      body {
+        align-items: flex-start;
+
+        padding: 1rem;
+      }
+
+      .register-card {
+        margin-top: 1rem;
+
+        padding: 1.5rem;
+
+        border-radius: 10px;
+      }
+
+      .register-header h1 {
+        font-size: 1.5rem;
+      }
+
+      .tabs label {
+        font-size: 0.85rem;
+
+        padding: 0.65rem 0.5rem;
+      }
+    }
+
   </style>
 </head>
 
@@ -161,34 +426,84 @@
 
 <main class="register-card">
 
-  <h1>Créer votre compte NoteHEI</h1>
+  <!-- =========================
+       EN-TÊTE
+       ========================= -->
 
-  <p
+  <header class="register-header">
+
+    <h1>
+      Créer votre compte NoteHEI
+    </h1>
+
+    <p>
+      Choisissez votre profil puis renseignez vos informations.
+    </p>
+
+  </header>
+
+
+  <!-- =========================
+       ERREUR GÉNÉRALE
+       ========================= -->
+
+  <div
           th:if="${emailError}"
-          th:text="${emailError}"
-          class="top-error">
-  </p>
+          class="top-error"
+          role="alert"
+          th:text="${emailError}">
+    Cette adresse email est déjà utilisée.
+  </div>
+
+
+  <!-- =========================
+       ONGLETS
+       ========================= -->
+
+  <!--
+      Les deux radios permettent au CSS
+      de déterminer quel formulaire afficher.
+  -->
 
   <input
+          class="tab-radio"
           type="radio"
           id="tab-student"
           name="tab"
+          value="student"
           th:checked="${activeTab == null or activeTab == 'student'}">
 
   <input
+          class="tab-radio"
           type="radio"
           id="tab-teacher"
           name="tab"
+          value="teacher"
           th:checked="${activeTab == 'teacher'}">
 
-  <div class="tabs">
-    <label for="tab-student">Étudiant</label>
-    <label for="tab-teacher">Enseignant</label>
+
+  <div class="tabs-container">
+
+    <div class="tabs">
+
+      <label
+              for="tab-student">
+        Étudiant
+      </label>
+
+      <label
+              for="tab-teacher">
+        Enseignant
+      </label>
+
+    </div>
+
   </div>
 
-  <!-- ========================= -->
-  <!-- FORMULAIRE ÉTUDIANT       -->
-  <!-- ========================= -->
+
+  <!-- =========================================================
+       FORMULAIRE ÉTUDIANT
+       ========================================================= -->
 
   <form
           class="form-panel form-student"
@@ -196,7 +511,16 @@
           method="post"
           th:object="${studentDto}">
 
+    <!--
+        Avec ta SecurityConfig actuelle, CSRF est désactivé.
+        On ne met donc pas de token CSRF ici.
+    -->
+
+
+    <!-- PRÉNOM -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-firstName">
@@ -207,16 +531,24 @@
               type="text"
               id="student-firstName"
               th:field="*{firstName}"
+              autocomplete="given-name"
+              placeholder="Votre prénom"
               required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('firstName')}"
               th:errors="*{firstName}">
+        Le prénom est invalide.
       </span>
+
     </div>
 
+
+    <!-- NOM -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-lastName">
@@ -227,37 +559,52 @@
               type="text"
               id="student-lastName"
               th:field="*{lastName}"
+              autocomplete="family-name"
+              placeholder="Votre nom"
               required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('lastName')}"
               th:errors="*{lastName}">
+        Le nom est invalide.
       </span>
+
     </div>
 
+
+    <!-- EMAIL -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-email">
-        Email
+        Adresse email
       </label>
 
       <input
               type="email"
               id="student-email"
               th:field="*{email}"
-              required
-              placeholder="your.email@hei.school">
+              autocomplete="email"
+              placeholder="your.email@hei.school"
+              required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('email')}"
               th:errors="*{email}">
+        L'adresse email est invalide.
       </span>
+
     </div>
 
+
+    <!-- MOT DE PASSE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-password">
@@ -268,17 +615,25 @@
               type="password"
               id="student-password"
               th:field="*{password}"
-              required
-              placeholder="min. 8 caractères">
+              autocomplete="new-password"
+              placeholder="Minimum 8 caractères"
+              minlength="8"
+              required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('password')}"
               th:errors="*{password}">
+        Le mot de passe est invalide.
       </span>
+
     </div>
 
+
+    <!-- DATE DE NAISSANCE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-birthdate">
@@ -288,10 +643,23 @@
       <input
               type="date"
               id="student-birthdate"
-              th:field="*{birthdate}">
+              th:field="*{birthdate}"
+              autocomplete="bday">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('birthdate')}"
+              th:errors="*{birthdate}">
+        La date de naissance est invalide.
+      </span>
+
     </div>
 
+
+    <!-- ADRESSE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="student-address">
@@ -301,18 +669,38 @@
       <input
               type="text"
               id="student-address"
-              th:field="*{address}">
+              th:field="*{address}"
+              autocomplete="street-address"
+              placeholder="Votre adresse">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('address')}"
+              th:errors="*{address}">
+        L'adresse est invalide.
+      </span>
+
     </div>
 
-    <button type="submit">
+
+    <p class="required-info">
+      Les champs marqués comme obligatoires doivent être renseignés.
+    </p>
+
+
+    <!-- BOUTON -->
+
+    <button
+            type="submit">
       Créer le compte étudiant
     </button>
 
   </form>
 
-  <!-- ========================= -->
-  <!-- FORMULAIRE ENSEIGNANT     -->
-  <!-- ========================= -->
+
+  <!-- =========================================================
+       FORMULAIRE ENSEIGNANT
+       ========================================================= -->
 
   <form
           class="form-panel form-teacher"
@@ -320,7 +708,15 @@
           method="post"
           th:object="${teacherDto}">
 
+    <!--
+        Avec ta SecurityConfig actuelle, CSRF est désactivé.
+    -->
+
+
+    <!-- PRÉNOM -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-firstName">
@@ -331,16 +727,24 @@
               type="text"
               id="teacher-firstName"
               th:field="*{firstName}"
+              autocomplete="given-name"
+              placeholder="Votre prénom"
               required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('firstName')}"
               th:errors="*{firstName}">
+        Le prénom est invalide.
       </span>
+
     </div>
 
+
+    <!-- NOM -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-lastName">
@@ -351,37 +755,52 @@
               type="text"
               id="teacher-lastName"
               th:field="*{lastName}"
+              autocomplete="family-name"
+              placeholder="Votre nom"
               required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('lastName')}"
               th:errors="*{lastName}">
+        Le nom est invalide.
       </span>
+
     </div>
 
+
+    <!-- EMAIL -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-email">
-        Email
+        Adresse email
       </label>
 
       <input
               type="email"
               id="teacher-email"
               th:field="*{email}"
-              required
-              placeholder="your.email@hei.school">
+              autocomplete="email"
+              placeholder="your.email@hei.school"
+              required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('email')}"
               th:errors="*{email}">
+        L'adresse email est invalide.
       </span>
+
     </div>
 
+
+    <!-- MOT DE PASSE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-password">
@@ -392,17 +811,25 @@
               type="password"
               id="teacher-password"
               th:field="*{password}"
-              required
-              placeholder="min. 8 caractères">
+              autocomplete="new-password"
+              placeholder="Minimum 8 caractères"
+              minlength="8"
+              required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('password')}"
               th:errors="*{password}">
+        Le mot de passe est invalide.
       </span>
+
     </div>
 
+
+    <!-- DATE DE NAISSANCE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-birthdate">
@@ -412,10 +839,23 @@
       <input
               type="date"
               id="teacher-birthdate"
-              th:field="*{birthdate}">
+              th:field="*{birthdate}"
+              autocomplete="bday">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('birthdate')}"
+              th:errors="*{birthdate}">
+        La date de naissance est invalide.
+      </span>
+
     </div>
 
+
+    <!-- ADRESSE -->
+
     <div class="form-group">
+
       <label
               class="field-label"
               for="teacher-address">
@@ -426,28 +866,48 @@
               type="text"
               id="teacher-address"
               th:field="*{address}"
+              autocomplete="street-address"
+              placeholder="Votre adresse"
               required>
 
       <span
               class="error"
               th:if="${#fields.hasErrors('address')}"
               th:errors="*{address}">
+        L'adresse est invalide.
       </span>
+
     </div>
 
-    <button type="submit">
+
+    <p class="required-info">
+      Les champs marqués comme obligatoires doivent être renseignés.
+    </p>
+
+
+    <!-- BOUTON -->
+
+    <button
+            type="submit">
       Créer le compte enseignant
     </button>
 
   </form>
 
+
+  <!-- =========================
+       RETOUR CONNEXION
+       ========================= -->
+
   <a
           th:href="@{/login}"
           class="back-link">
-    Vous avez déjà un compte ? Se connecter
+    Vous avez déjà un compte ?
+    Se connecter
   </a>
 
 </main>
 
 </body>
+
 </html>
