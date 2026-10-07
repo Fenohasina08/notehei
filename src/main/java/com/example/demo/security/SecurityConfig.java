@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @RequiredArgsConstructor
@@ -49,7 +48,10 @@ public class SecurityConfig {
   @Bean
   @Order(1)
   public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+
     http.securityMatcher(API_PATHS)
+
+        // API JWT = pas de CSRF et pas de session
         .csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -78,40 +80,40 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers("/transcripts/**")
                     .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-                    .requestMatchers("/diplomas/**") // <-- Ajouté ici
+                    .requestMatchers("/diplomas/**")
                     .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
                     .anyRequest()
                     .authenticated())
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
     return http.build();
   }
 
   @Bean
   @Order(2)
   public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
-    http.csrf(csrf -> csrf.csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
+
+    http.csrf(AbstractHttpConfigurer::disable)
+
+        // IMPORTANT :
+        // aucune HttpSession pour les pages Thymeleaf
         .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/login", "/register/**", "/css/**", "/js/**", "/webjars/**")
+                auth.requestMatchers(
+                        "/login", "/register", "/register/**", "/css/**", "/js/**", "/webjars/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
-        .formLogin(
-            form ->
-                form.loginPage("/login")
-                    .loginProcessingUrl("/login")
-                    .usernameParameter("email")
-                    .passwordParameter("password")
-                    .defaultSuccessUrl("/", true)
-                    .failureUrl("/login?error")
-                    .permitAll())
-        .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout"))
+
+        // Le même JWT filter est utilisé pour les pages HTML.
+        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
             exceptions ->
                 exceptions.accessDeniedHandler(
                     (request, response, ex) -> response.sendRedirect("/access-denied")));
+
     return http.build();
   }
 }
