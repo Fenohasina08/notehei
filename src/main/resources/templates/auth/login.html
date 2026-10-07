@@ -174,13 +174,19 @@
     </div>
 
     <div
+            id="error-message"
+            class="error-message"
+            style="display: none;">
+    </div>
+
+    <div
             th:if="${logoutMessage}"
             class="logout-message"
             th:text="${logoutMessage}">
       Vous avez été déconnecté.
     </div>
 
-    <form method="post" action="/login">
+    <form id="login-form">
 
       <div class="form-group">
         <label for="email">Adresse email</label>
@@ -208,6 +214,7 @@
 
       <button
               type="submit"
+              id="login-button"
               class="login-button">
         Se connecter
       </button>
@@ -222,6 +229,80 @@
   </div>
 
 </div>
+
+<script>
+  const loginForm = document.getElementById("login-form");
+  const loginButton = document.getElementById("login-button");
+  const errorMessage = document.getElementById("error-message");
+
+  loginForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    errorMessage.style.display = "none";
+    loginButton.disabled = true;
+    loginButton.textContent = "Connexion...";
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    try {
+      const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
+
+      if (!response.ok) {
+        let message = "Email ou mot de passe incorrect.";
+
+        try {
+          const errorData = await response.json();
+
+          if (errorData.message) {
+            message = errorData.message;
+          }
+        } catch (_) {
+          // La réponse n'est pas du JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      /*
+       * Le backend envoie maintenant :
+       *
+       * Set-Cookie: NOTEHEI_TOKEN=...
+       *
+       * Le cookie est HttpOnly, donc JavaScript
+       * ne peut pas et ne doit pas le lire.
+       *
+       * Il n'est donc PAS nécessaire de faire :
+       *
+       * localStorage.setItem("token", data.token);
+       */
+
+      await response.json();
+
+      window.location.href = "/";
+
+    } catch (error) {
+
+      errorMessage.textContent =
+              error.message || "Une erreur est survenue.";
+
+      errorMessage.style.display = "block";
+
+      loginButton.disabled = false;
+      loginButton.textContent = "Se connecter";
+    }
+  });
+</script>
 
 </body>
 </html>

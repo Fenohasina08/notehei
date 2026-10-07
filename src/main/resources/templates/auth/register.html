@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8" />
-  <title>Sign up — NoteHEI</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Inscription — NoteHEI</title>
+
   <style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, sans-serif;
       background-color: #f8fafc;
       color: #1e293b;
       margin: 0;
@@ -14,15 +18,18 @@
       align-items: center;
       min-height: 100vh;
     }
+
     .register-card {
       background: #ffffff;
       padding: 2.5rem;
       border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1);
       width: 100%;
       max-width: 440px;
       box-sizing: border-box;
     }
+
     h1 {
       margin-top: 0;
       font-size: 1.5rem;
@@ -30,6 +37,7 @@
       text-align: center;
       margin-bottom: 1.5rem;
     }
+
     .tabs {
       display: flex;
       border: 1px solid #e2e8f0;
@@ -37,9 +45,11 @@
       overflow: hidden;
       margin-bottom: 1.5rem;
     }
+
     .tabs input[type="radio"] {
       display: none;
     }
+
     .tabs label {
       flex: 1;
       text-align: center;
@@ -51,28 +61,42 @@
       background: #f1f5f9;
       transition: background-color 0.2s, color 0.2s;
     }
+
     #tab-student:checked ~ .tabs label[for="tab-student"],
     #tab-teacher:checked ~ .tabs label[for="tab-teacher"] {
       background: #4f46e5;
       color: white;
     }
-    .form-panel { display: none; }
-    #tab-student:checked ~ .form-student { display: flex; }
-    #tab-teacher:checked ~ .form-teacher { display: flex; }
+
+    .form-panel {
+      display: none;
+    }
+
+    #tab-student:checked ~ .form-student {
+      display: flex;
+    }
+
+    #tab-teacher:checked ~ .form-teacher {
+      display: flex;
+    }
+
     form {
       flex-direction: column;
       gap: 1.1rem;
     }
+
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
     }
+
     label.field-label {
       font-weight: 500;
       font-size: 0.85rem;
       color: #64748b;
     }
+
     input {
       padding: 0.7rem;
       border: 1px solid #e2e8f0;
@@ -82,10 +106,12 @@
       transition: border-color 0.2s;
       box-sizing: border-box;
     }
+
     input:focus {
       border-color: #4f46e5;
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
+
     button[type="submit"] {
       background-color: #4f46e5;
       color: white;
@@ -98,9 +124,11 @@
       margin-top: 0.25rem;
       transition: background-color 0.2s;
     }
+
     button[type="submit"]:hover {
       background-color: #4338ca;
     }
+
     .back-link {
       display: block;
       text-align: center;
@@ -109,14 +137,17 @@
       font-size: 0.875rem;
       text-decoration: none;
     }
+
     .back-link:hover {
       color: #4f46e5;
     }
+
     .error {
       color: #dc2626;
       font-size: 0.8rem;
       margin: -0.2rem 0 0;
     }
+
     .top-error {
       color: #dc2626;
       font-size: 0.875rem;
@@ -125,105 +156,297 @@
     }
   </style>
 </head>
+
 <body>
 
 <main class="register-card">
-  <h1>Create your NoteHEI account</h1>
 
-  <p th:if="${emailError}" th:text="${emailError}" class="top-error"></p>
+  <h1>Créer votre compte NoteHEI</h1>
 
-  <input type="radio" id="tab-student" name="tab"
-         th:checked="${activeTab == null or activeTab == 'student'}" />
-  <input type="radio" id="tab-teacher" name="tab"
-         th:checked="${activeTab == 'teacher'}" />
+  <p
+          th:if="${emailError}"
+          th:text="${emailError}"
+          class="top-error">
+  </p>
+
+  <input
+          type="radio"
+          id="tab-student"
+          name="tab"
+          th:checked="${activeTab == null or activeTab == 'student'}">
+
+  <input
+          type="radio"
+          id="tab-teacher"
+          name="tab"
+          th:checked="${activeTab == 'teacher'}">
 
   <div class="tabs">
-    <label for="tab-student">Student</label>
-    <label for="tab-teacher">Teacher</label>
+    <label for="tab-student">Étudiant</label>
+    <label for="tab-teacher">Enseignant</label>
   </div>
 
-  <form class="form-panel form-student" th:action="@{/register/student}" method="post" th:object="${studentDto}">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+  <!-- ========================= -->
+  <!-- FORMULAIRE ÉTUDIANT       -->
+  <!-- ========================= -->
+
+  <form
+          class="form-panel form-student"
+          th:action="@{/register/student}"
+          method="post"
+          th:object="${studentDto}">
 
     <div class="form-group">
-      <label class="field-label" for="student-firstName">First name</label>
-      <input type="text" id="student-firstName" th:field="*{firstName}" required />
-      <span class="error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></span>
+      <label
+              class="field-label"
+              for="student-firstName">
+        Prénom
+      </label>
+
+      <input
+              type="text"
+              id="student-firstName"
+              th:field="*{firstName}"
+              required>
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('firstName')}"
+              th:errors="*{firstName}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="student-lastName">Last name</label>
-      <input type="text" id="student-lastName" th:field="*{lastName}" required />
-      <span class="error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></span>
+      <label
+              class="field-label"
+              for="student-lastName">
+        Nom
+      </label>
+
+      <input
+              type="text"
+              id="student-lastName"
+              th:field="*{lastName}"
+              required>
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('lastName')}"
+              th:errors="*{lastName}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="student-email">Email</label>
-      <input type="email" id="student-email" th:field="*{email}" required placeholder="your.email@hei.school" />
-      <span class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+      <label
+              class="field-label"
+              for="student-email">
+        Email
+      </label>
+
+      <input
+              type="email"
+              id="student-email"
+              th:field="*{email}"
+              required
+              placeholder="your.email@hei.school">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('email')}"
+              th:errors="*{email}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="student-password">Password</label>
-      <input type="password" id="student-password" th:field="*{password}" required placeholder="min. 8 characters" />
-      <span class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+      <label
+              class="field-label"
+              for="student-password">
+        Mot de passe
+      </label>
+
+      <input
+              type="password"
+              id="student-password"
+              th:field="*{password}"
+              required
+              placeholder="min. 8 caractères">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('password')}"
+              th:errors="*{password}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="student-birthdate">Birthdate</label>
-      <input type="date" id="student-birthdate" th:field="*{birthdate}" />
+      <label
+              class="field-label"
+              for="student-birthdate">
+        Date de naissance
+      </label>
+
+      <input
+              type="date"
+              id="student-birthdate"
+              th:field="*{birthdate}">
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="student-address">Address</label>
-      <input type="text" id="student-address" th:field="*{address}" />
+      <label
+              class="field-label"
+              for="student-address">
+        Adresse
+      </label>
+
+      <input
+              type="text"
+              id="student-address"
+              th:field="*{address}">
     </div>
 
-    <button type="submit">Sign up as Student</button>
+    <button type="submit">
+      Créer le compte étudiant
+    </button>
+
   </form>
 
-  <form class="form-panel form-teacher" th:action="@{/register/teacher}" method="post" th:object="${teacherDto}">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+  <!-- ========================= -->
+  <!-- FORMULAIRE ENSEIGNANT     -->
+  <!-- ========================= -->
+
+  <form
+          class="form-panel form-teacher"
+          th:action="@{/register/teacher}"
+          method="post"
+          th:object="${teacherDto}">
 
     <div class="form-group">
-      <label class="field-label" for="teacher-firstName">First name</label>
-      <input type="text" id="teacher-firstName" th:field="*{firstName}" required />
-      <span class="error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></span>
+      <label
+              class="field-label"
+              for="teacher-firstName">
+        Prénom
+      </label>
+
+      <input
+              type="text"
+              id="teacher-firstName"
+              th:field="*{firstName}"
+              required>
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('firstName')}"
+              th:errors="*{firstName}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="teacher-lastName">Last name</label>
-      <input type="text" id="teacher-lastName" th:field="*{lastName}" required />
-      <span class="error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></span>
+      <label
+              class="field-label"
+              for="teacher-lastName">
+        Nom
+      </label>
+
+      <input
+              type="text"
+              id="teacher-lastName"
+              th:field="*{lastName}"
+              required>
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('lastName')}"
+              th:errors="*{lastName}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="teacher-email">Email</label>
-      <input type="email" id="teacher-email" th:field="*{email}" required placeholder="your.email@hei.school" />
-      <span class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+      <label
+              class="field-label"
+              for="teacher-email">
+        Email
+      </label>
+
+      <input
+              type="email"
+              id="teacher-email"
+              th:field="*{email}"
+              required
+              placeholder="your.email@hei.school">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('email')}"
+              th:errors="*{email}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="teacher-password">Password</label>
-      <input type="password" id="teacher-password" th:field="*{password}" required placeholder="min. 8 characters" />
-      <span class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+      <label
+              class="field-label"
+              for="teacher-password">
+        Mot de passe
+      </label>
+
+      <input
+              type="password"
+              id="teacher-password"
+              th:field="*{password}"
+              required
+              placeholder="min. 8 caractères">
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('password')}"
+              th:errors="*{password}">
+      </span>
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="teacher-birthdate">Birthdate</label>
-      <input type="date" id="teacher-birthdate" th:field="*{birthdate}" />
+      <label
+              class="field-label"
+              for="teacher-birthdate">
+        Date de naissance
+      </label>
+
+      <input
+              type="date"
+              id="teacher-birthdate"
+              th:field="*{birthdate}">
     </div>
 
     <div class="form-group">
-      <label class="field-label" for="teacher-address">Address</label>
-      <input type="text" id="teacher-address" th:field="*{address}" required />
-      <span class="error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></span>
+      <label
+              class="field-label"
+              for="teacher-address">
+        Adresse
+      </label>
+
+      <input
+              type="text"
+              id="teacher-address"
+              th:field="*{address}"
+              required>
+
+      <span
+              class="error"
+              th:if="${#fields.hasErrors('address')}"
+              th:errors="*{address}">
+      </span>
     </div>
 
-    <button type="submit">Sign up as Teacher</button>
+    <button type="submit">
+      Créer le compte enseignant
+    </button>
+
   </form>
 
-  <a th:href="@{/login}" class="back-link">Already have an account? Sign in</a>
+  <a
+          th:href="@{/login}"
+          class="back-link">
+    Vous avez déjà un compte ? Se connecter
+  </a>
+
 </main>
 
 </body>

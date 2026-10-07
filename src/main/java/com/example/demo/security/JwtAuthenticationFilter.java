@@ -51,16 +51,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private String extractToken(HttpServletRequest request) {
 
-    // 1. Pour les appels API :
-    // Authorization: Bearer <token>
     String header = request.getHeader(HEADER);
 
     if (header != null && header.startsWith(PREFIX)) {
       return header.substring(PREFIX.length());
     }
 
-    // 2. Pour les pages Thymeleaf :
-    // Cookie: NOTEHEI_TOKEN=<token>
     Cookie[] cookies = request.getCookies();
 
     if (cookies != null) {
