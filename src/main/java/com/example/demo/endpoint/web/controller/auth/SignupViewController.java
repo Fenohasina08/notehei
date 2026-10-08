@@ -5,6 +5,7 @@ import com.example.demo.dto.CreateTeacherDTO;
 import com.example.demo.exception.EmailAlreadyUsedException;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.TeacherService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +41,26 @@ public class SignupViewController {
   public String registerStudent(
       @Valid @ModelAttribute("studentDto") CreateStudentDTO studentDto,
       BindingResult bindingResult,
-      Model model) {
+      Model model,
+      HttpServletRequest request) {
+
+    System.out.println("============================================================");
+    System.out.println("===== REQUEST DIRECT DEBUG =====");
+    System.out.println("============================================================");
+
+    System.out.println("request.getParameter(firstName) = " + request.getParameter("firstName"));
+
+    System.out.println("request.getParameter(lastName) = " + request.getParameter("lastName"));
+
+    System.out.println("request.getParameter(email) = " + request.getParameter("email"));
+
+    System.out.println("request.getParameter(password) = " + request.getParameter("password"));
+
+    System.out.println("request.getParameter(birthdate) = " + request.getParameter("birthdate"));
+
+    System.out.println("request.getParameter(address) = " + request.getParameter("address"));
+
+    System.out.println("request.getParameterMap = " + request.getParameterMap());
 
     System.out.println("============================================================");
     System.out.println("===== BINDING DEBUG - STUDENT =====");
@@ -86,15 +106,10 @@ public class SignupViewController {
     System.out.println("============================================================");
 
     System.out.println("firstName = [" + studentDto.getFirstName() + "]");
-
     System.out.println("lastName = [" + studentDto.getLastName() + "]");
-
     System.out.println("email = [" + studentDto.getEmail() + "]");
-
     System.out.println("password = [" + studentDto.getPassword() + "]");
-
     System.out.println("birthdate = [" + studentDto.getBirthdate() + "]");
-
     System.out.println("address = [" + studentDto.getAddress() + "]");
 
     System.out.println("hasErrors = " + bindingResult.hasErrors());
