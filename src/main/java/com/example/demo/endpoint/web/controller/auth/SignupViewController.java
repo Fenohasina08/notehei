@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -22,6 +24,30 @@ public class SignupViewController {
 
   private final StudentService studentService;
   private final TeacherService teacherService;
+
+  @InitBinder("studentDto")
+  public void debugStudentBinder(WebDataBinder binder) {
+
+    System.out.println("============================================================");
+    System.out.println("===== WEB DATA BINDER DEBUG - STUDENT =====");
+    System.out.println("============================================================");
+
+    System.out.println(
+        "target class = "
+            + (binder.getTarget() != null ? binder.getTarget().getClass().getName() : "null"));
+
+    System.out.println("allowed fields = " + Arrays.toString(binder.getAllowedFields()));
+
+    System.out.println("disallowed fields = " + Arrays.toString(binder.getDisallowedFields()));
+
+    System.out.println("ignore unknown fields = " + binder.isIgnoreUnknownFields());
+
+    System.out.println("ignore invalid fields = " + binder.isIgnoreInvalidFields());
+
+    System.out.println("auto grow nested paths = " + binder.isAutoGrowNestedPaths());
+
+    System.out.println("============================================================");
+  }
 
   @GetMapping("/register")
   public String register(Model model) {
@@ -106,10 +132,15 @@ public class SignupViewController {
     System.out.println("============================================================");
 
     System.out.println("firstName = [" + studentDto.getFirstName() + "]");
+
     System.out.println("lastName = [" + studentDto.getLastName() + "]");
+
     System.out.println("email = [" + studentDto.getEmail() + "]");
+
     System.out.println("password = [" + studentDto.getPassword() + "]");
+
     System.out.println("birthdate = [" + studentDto.getBirthdate() + "]");
+
     System.out.println("address = [" + studentDto.getAddress() + "]");
 
     System.out.println("hasErrors = " + bindingResult.hasErrors());
