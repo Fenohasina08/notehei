@@ -6,6 +6,7 @@ import com.example.demo.exception.EmailAlreadyUsedException;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.TeacherService;
 import jakarta.validation.Valid;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -41,70 +42,95 @@ public class SignupViewController {
       BindingResult bindingResult,
       Model model) {
 
-    /*
-     * ============================================================
-     * DEBUG - Vérification du binding du formulaire étudiant
-     * ============================================================
-     *
-     * Ces logs permettent de vérifier si les valeurs envoyées
-     * par register.html arrivent correctement dans CreateStudentDTO.
-     */
+    System.out.println("============================================================");
+    System.out.println("===== BINDING DEBUG - STUDENT =====");
+    System.out.println("============================================================");
+
+    System.out.println("DTO class = " + studentDto.getClass().getName());
+
+    System.out.println(
+        "setFirstName exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setFirstName")));
+
+    System.out.println(
+        "setLastName exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setLastName")));
+
+    System.out.println(
+        "setEmail exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setEmail")));
+
+    System.out.println(
+        "setPassword exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setPassword")));
+
+    System.out.println(
+        "setBirthdate exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setBirthdate")));
+
+    System.out.println(
+        "setAddress exists = "
+            + Arrays.stream(studentDto.getClass().getMethods())
+                .anyMatch(method -> method.getName().equals("setAddress")));
+
+    System.out.println(
+        "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
+
+    System.out.println("============================================================");
     System.out.println("===== STUDENT DTO =====");
+    System.out.println("============================================================");
+
     System.out.println("firstName = [" + studentDto.getFirstName() + "]");
+
     System.out.println("lastName = [" + studentDto.getLastName() + "]");
+
     System.out.println("email = [" + studentDto.getEmail() + "]");
+
     System.out.println("password = [" + studentDto.getPassword() + "]");
+
     System.out.println("birthdate = [" + studentDto.getBirthdate() + "]");
+
     System.out.println("address = [" + studentDto.getAddress() + "]");
+
     System.out.println("hasErrors = " + bindingResult.hasErrors());
 
-    /*
-     * Affiche toutes les erreurs de validation éventuelles.
-     */
-    bindingResult
-        .getFieldErrors()
-        .forEach(
-            error ->
-                System.out.println(
-                    "ERROR field="
-                        + error.getField()
-                        + " message="
-                        + error.getDefaultMessage()
-                        + " rejectedValue=["
-                        + error.getRejectedValue()
-                        + "]"));
+    if (bindingResult.hasErrors()) {
 
-    /*
-     * On prépare le DTO enseignant car la page register.html
-     * contient également le formulaire enseignant.
-     */
+      System.out.println("============================================================");
+      System.out.println("===== VALIDATION ERRORS =====");
+      System.out.println("============================================================");
+
+      bindingResult
+          .getFieldErrors()
+          .forEach(
+              error ->
+                  System.out.println(
+                      "ERROR field="
+                          + error.getField()
+                          + " message="
+                          + error.getDefaultMessage()
+                          + " rejectedValue=["
+                          + error.getRejectedValue()
+                          + "]"));
+    }
+
     model.addAttribute("teacherDto", CreateTeacherDTO.builder().build());
 
-    /*
-     * On indique à la page que l'onglet étudiant doit rester actif
-     * lorsque le formulaire contient une erreur.
-     */
     model.addAttribute("activeTab", "student");
 
-    /*
-     * Si la validation échoue, on retourne simplement sur
-     * la page d'inscription avec les erreurs.
-     */
     if (bindingResult.hasErrors()) {
       return "auth/register";
     }
 
-    /*
-     * Si toutes les données sont valides, on crée le compte étudiant.
-     */
     try {
 
       var created = studentService.create(studentDto);
 
-      /*
-       * Informations utilisées par register-success.html
-       * pour afficher le résultat de l'inscription.
-       */
       model.addAttribute("successRole", "Student");
 
       model.addAttribute("successMatricule", created.getMatricule());
@@ -113,9 +139,6 @@ public class SignupViewController {
 
     } catch (EmailAlreadyUsedException e) {
 
-      /*
-       * L'email existe déjà dans la base de données.
-       */
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
 
       return "auth/register";
@@ -128,35 +151,41 @@ public class SignupViewController {
       BindingResult bindingResult,
       Model model) {
 
-    /*
-     * On prépare le DTO étudiant car la page register.html
-     * contient également le formulaire étudiant.
-     */
+    System.out.println("============================================================");
+    System.out.println("===== BINDING DEBUG - TEACHER =====");
+    System.out.println("============================================================");
+
+    System.out.println("DTO class = " + teacherDto.getClass().getName());
+
+    System.out.println(
+        "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
+
     model.addAttribute("studentDto", CreateStudentDTO.builder().build());
 
-    /*
-     * On indique à la page que l'onglet enseignant doit rester actif
-     * lorsque le formulaire contient une erreur.
-     */
     model.addAttribute("activeTab", "teacher");
 
-    /*
-     * Si la validation échoue, on retourne sur la page d'inscription.
-     */
     if (bindingResult.hasErrors()) {
+
+      bindingResult
+          .getFieldErrors()
+          .forEach(
+              error ->
+                  System.out.println(
+                      "ERROR field="
+                          + error.getField()
+                          + " message="
+                          + error.getDefaultMessage()
+                          + " rejectedValue=["
+                          + error.getRejectedValue()
+                          + "]"));
+
       return "auth/register";
     }
 
-    /*
-     * Si les données sont valides, on crée le compte enseignant.
-     */
     try {
 
       var created = teacherService.create(teacherDto);
 
-      /*
-       * Informations utilisées par register-success.html.
-       */
       model.addAttribute("successRole", "Teacher");
 
       model.addAttribute("successMatricule", created.getMatricule());
@@ -165,9 +194,6 @@ public class SignupViewController {
 
     } catch (EmailAlreadyUsedException e) {
 
-      /*
-       * L'email existe déjà dans la base de données.
-       */
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
 
       return "auth/register";
