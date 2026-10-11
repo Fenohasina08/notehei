@@ -6,168 +6,62 @@ import com.example.demo.exception.EmailAlreadyUsedException;
 import com.example.demo.service.StudentService;
 import com.example.demo.service.TeacherService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import java.util.Arrays;
+import jakarta.validation.Validator;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.WebDataBinder;
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
 @Controller
 @RequiredArgsConstructor
 public class SignupViewController {
-  // d
+
   private final StudentService studentService;
   private final TeacherService teacherService;
-
-  @InitBinder("studentDto")
-  public void debugStudentBinder(WebDataBinder binder) {
-    System.out.println("============================================================");
-    System.out.println("===== WEB DATA BINDER DEBUG - STUDENT =====");
-    System.out.println("============================================================");
-
-    System.out.println(
-        "target class = "
-            + (binder.getTarget() != null ? binder.getTarget().getClass().getName() : "null"));
-
-    System.out.println("object name = " + binder.getObjectName());
-    System.out.println("allowed fields = " + Arrays.toString(binder.getAllowedFields()));
-    System.out.println("disallowed fields = " + Arrays.toString(binder.getDisallowedFields()));
-    System.out.println("ignore unknown fields = " + binder.isIgnoreUnknownFields());
-    System.out.println("ignore invalid fields = " + binder.isIgnoreInvalidFields());
-    System.out.println("auto grow nested paths = " + binder.isAutoGrowNestedPaths());
-
-    System.out.println("============================================================");
-  }
+  private final Validator validator;
 
   @GetMapping("/register")
   public String register(Model model) {
     if (!model.containsAttribute("studentDto")) {
-      model.addAttribute("studentDto", CreateStudentDTO.builder().build());
+      model.addAttribute("studentDto", new CreateStudentDTO());
     }
-
     if (!model.containsAttribute("teacherDto")) {
-      model.addAttribute("teacherDto", CreateTeacherDTO.builder().build());
+      model.addAttribute("teacherDto", new CreateTeacherDTO());
     }
-
     return "auth/register";
   }
 
   @PostMapping("/register/student")
-  public String registerStudent(
-      @Valid @ModelAttribute("studentDto") CreateStudentDTO studentDto,
-      BindingResult bindingResult,
-      Model model,
-      HttpServletRequest request) {
+  public String registerStudent(HttpServletRequest request, Model model) {
+    CreateStudentDTO dto = new CreateStudentDTO();
+    dto.setFirstName(param(request, "firstName"));
+    dto.setLastName(param(request, "lastName"));
+    dto.setEmail(param(request, "email"));
+    dto.setPassword(request.getParameter("password")); // pas de trim sur le mot de passe
+    dto.setAddress(param(request, "address"));
 
-    System.out.println("============================================================");
-    System.out.println("===== REQUEST DIRECT DEBUG =====");
-    System.out.println("============================================================");
+    BindingResult result = validate(dto, "studentDto");
+    parseBirthdate(request.getParameter("birthdate"), result, dto::setBirthdate);
 
-    System.out.println("Request method = " + request.getMethod());
-    System.out.println("Request content type = " + request.getContentType());
-    System.out.println("Request character encoding = " + request.getCharacterEncoding());
-
-    System.out.println("firstName = " + request.getParameter("firstName"));
-    System.out.println("lastName = " + request.getParameter("lastName"));
-    System.out.println("email = " + request.getParameter("email"));
-    System.out.println("password = " + request.getParameter("password"));
-    System.out.println("birthdate = " + request.getParameter("birthdate"));
-    System.out.println("address = " + request.getParameter("address"));
-    System.out.println("Parameter names = " + request.getParameterMap().keySet());
-
-    System.out.println("============================================================");
-    System.out.println("===== BINDING DEBUG - STUDENT =====");
-    System.out.println("============================================================");
-
-    System.out.println("DTO class = " + studentDto.getClass().getName());
-
-    System.out.println(
-        "setFirstName exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setFirstName")));
-
-    System.out.println(
-        "setLastName exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setLastName")));
-
-    System.out.println(
-        "setEmail exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setEmail")));
-
-    System.out.println(
-        "setPassword exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setPassword")));
-
-    System.out.println(
-        "setBirthdate exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setBirthdate")));
-
-    System.out.println(
-        "setAddress exists = "
-            + Arrays.stream(studentDto.getClass().getMethods())
-                .anyMatch(method -> method.getName().equals("setAddress")));
-
-    System.out.println(
-        "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
-
-    System.out.println("============================================================");
-    System.out.println("===== STUDENT DTO VALUES =====");
-    System.out.println("============================================================");
-
-    System.out.println("firstName = [" + studentDto.getFirstName() + "]");
-    System.out.println("lastName = [" + studentDto.getLastName() + "]");
-    System.out.println("email = [" + studentDto.getEmail() + "]");
-    System.out.println("password is present = " + (studentDto.getPassword() != null));
-    System.out.println("birthdate = [" + studentDto.getBirthdate() + "]");
-    System.out.println("address = [" + studentDto.getAddress() + "]");
-
-    System.out.println("hasErrors = " + bindingResult.hasErrors());
-    System.out.println("binding error count = " + bindingResult.getErrorCount());
-
-    if (bindingResult.hasErrors()) {
-      System.out.println("============================================================");
-      System.out.println("===== VALIDATION AND BINDING ERRORS =====");
-      System.out.println("============================================================");
-
-      bindingResult
-          .getFieldErrors()
-          .forEach(
-              error ->
-                  System.out.println(
-                      "field="
-                          + error.getField()
-                          + ", rejectedValue=["
-                          + error.getRejectedValue()
-                          + "]"
-                          + ", bindingFailure="
-                          + error.isBindingFailure()
-                          + ", message="
-                          + error.getDefaultMessage()));
-    }
-
-    model.addAttribute("teacherDto", CreateTeacherDTO.builder().build());
+    model.addAttribute("studentDto", dto);
+    model.addAttribute("teacherDto", new CreateTeacherDTO());
     model.addAttribute("activeTab", "student");
+    model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "studentDto", result);
 
-    if (bindingResult.hasErrors()) {
+    if (result.hasErrors()) {
       return "auth/register";
     }
 
     try {
-      var created = studentService.create(studentDto);
-
+      var created = studentService.create(dto);
       model.addAttribute("successRole", "Student");
       model.addAttribute("successMatricule", created.getMatricule());
-
       return "auth/register-success";
     } catch (EmailAlreadyUsedException e) {
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
@@ -176,51 +70,60 @@ public class SignupViewController {
   }
 
   @PostMapping("/register/teacher")
-  public String registerTeacher(
-      @Valid @ModelAttribute("teacherDto") CreateTeacherDTO teacherDto,
-      BindingResult bindingResult,
-      Model model) {
+  public String registerTeacher(HttpServletRequest request, Model model) {
+    CreateTeacherDTO dto = new CreateTeacherDTO();
+    dto.setFirstName(param(request, "firstName"));
+    dto.setLastName(param(request, "lastName"));
+    dto.setEmail(param(request, "email"));
+    dto.setPassword(request.getParameter("password"));
+    dto.setAddress(param(request, "address"));
 
-    System.out.println("============================================================");
-    System.out.println("===== BINDING DEBUG - TEACHER =====");
-    System.out.println("============================================================");
+    BindingResult result = validate(dto, "teacherDto");
+    parseBirthdate(request.getParameter("birthdate"), result, dto::setBirthdate);
 
-    System.out.println("DTO class = " + teacherDto.getClass().getName());
-    System.out.println(
-        "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
-
-    model.addAttribute("studentDto", CreateStudentDTO.builder().build());
+    model.addAttribute("teacherDto", dto);
+    model.addAttribute("studentDto", new CreateStudentDTO());
     model.addAttribute("activeTab", "teacher");
+    model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "teacherDto", result);
 
-    if (bindingResult.hasErrors()) {
-      bindingResult
-          .getFieldErrors()
-          .forEach(
-              error ->
-                  System.out.println(
-                      "field="
-                          + error.getField()
-                          + ", rejectedValue=["
-                          + error.getRejectedValue()
-                          + "]"
-                          + ", bindingFailure="
-                          + error.isBindingFailure()
-                          + ", message="
-                          + error.getDefaultMessage()));
-
+    if (result.hasErrors()) {
       return "auth/register";
     }
 
     try {
-      var created = teacherService.create(teacherDto);
-
+      var created = teacherService.create(dto);
       model.addAttribute("successRole", "Teacher");
       model.addAttribute("successMatricule", created.getMatricule());
-
       return "auth/register-success";
     } catch (EmailAlreadyUsedException e) {
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
       return "auth/register";
     }
+  }
+
+  /** Valide le DTO avec Bean Validation et retourne un BindingResult exploitable par Thymeleaf. */
+  private BindingResult validate(Object dto, String objectName) {
+    BindingResult result = new BeanPropertyBindingResult(dto, objectName);
+    new SpringValidatorAdapter(validator).validate(dto, result);
+    return result;
+  }
+
+  /** Parse la date de naissance (format ISO yyyy-MM-dd envoyé par input type="date"). */
+  private void parseBirthdate(
+      String raw, BindingResult result, java.util.function.Consumer<LocalDate> setter) {
+    if (raw == null || raw.isBlank()) {
+      return;
+    }
+    try {
+      setter.accept(LocalDate.parse(raw.trim()));
+    } catch (DateTimeParseException e) {
+      result.rejectValue("birthdate", "typeMismatch", "La date de naissance est invalide.");
+    }
+  }
+
+  /** Retourne le paramètre sans espaces autour, ou null s'il est absent. */
+  private String param(HttpServletRequest request, String name) {
+    String value = request.getParameter(name);
+    return value == null ? null : value.trim();
   }
 }
