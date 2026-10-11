@@ -27,7 +27,6 @@ public class SignupViewController {
 
   @InitBinder("studentDto")
   public void debugStudentBinder(WebDataBinder binder) {
-
     System.out.println("============================================================");
     System.out.println("===== WEB DATA BINDER DEBUG - STUDENT =====");
     System.out.println("============================================================");
@@ -36,14 +35,11 @@ public class SignupViewController {
         "target class = "
             + (binder.getTarget() != null ? binder.getTarget().getClass().getName() : "null"));
 
+    System.out.println("object name = " + binder.getObjectName());
     System.out.println("allowed fields = " + Arrays.toString(binder.getAllowedFields()));
-
     System.out.println("disallowed fields = " + Arrays.toString(binder.getDisallowedFields()));
-
     System.out.println("ignore unknown fields = " + binder.isIgnoreUnknownFields());
-
     System.out.println("ignore invalid fields = " + binder.isIgnoreInvalidFields());
-
     System.out.println("auto grow nested paths = " + binder.isAutoGrowNestedPaths());
 
     System.out.println("============================================================");
@@ -51,7 +47,6 @@ public class SignupViewController {
 
   @GetMapping("/register")
   public String register(Model model) {
-
     if (!model.containsAttribute("studentDto")) {
       model.addAttribute("studentDto", CreateStudentDTO.builder().build());
     }
@@ -74,19 +69,17 @@ public class SignupViewController {
     System.out.println("===== REQUEST DIRECT DEBUG =====");
     System.out.println("============================================================");
 
-    System.out.println("request.getParameter(firstName) = " + request.getParameter("firstName"));
+    System.out.println("Request method = " + request.getMethod());
+    System.out.println("Request content type = " + request.getContentType());
+    System.out.println("Request character encoding = " + request.getCharacterEncoding());
 
-    System.out.println("request.getParameter(lastName) = " + request.getParameter("lastName"));
-
-    System.out.println("request.getParameter(email) = " + request.getParameter("email"));
-
-    System.out.println("request.getParameter(password) = " + request.getParameter("password"));
-
-    System.out.println("request.getParameter(birthdate) = " + request.getParameter("birthdate"));
-
-    System.out.println("request.getParameter(address) = " + request.getParameter("address"));
-
-    System.out.println("request.getParameterMap = " + request.getParameterMap());
+    System.out.println("firstName = " + request.getParameter("firstName"));
+    System.out.println("lastName = " + request.getParameter("lastName"));
+    System.out.println("email = " + request.getParameter("email"));
+    System.out.println("password = " + request.getParameter("password"));
+    System.out.println("birthdate = " + request.getParameter("birthdate"));
+    System.out.println("address = " + request.getParameter("address"));
+    System.out.println("Parameter names = " + request.getParameterMap().keySet());
 
     System.out.println("============================================================");
     System.out.println("===== BINDING DEBUG - STUDENT =====");
@@ -128,27 +121,22 @@ public class SignupViewController {
         "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
 
     System.out.println("============================================================");
-    System.out.println("===== STUDENT DTO =====");
+    System.out.println("===== STUDENT DTO VALUES =====");
     System.out.println("============================================================");
 
     System.out.println("firstName = [" + studentDto.getFirstName() + "]");
-
     System.out.println("lastName = [" + studentDto.getLastName() + "]");
-
     System.out.println("email = [" + studentDto.getEmail() + "]");
-
-    System.out.println("password = [" + studentDto.getPassword() + "]");
-
+    System.out.println("password is present = " + (studentDto.getPassword() != null));
     System.out.println("birthdate = [" + studentDto.getBirthdate() + "]");
-
     System.out.println("address = [" + studentDto.getAddress() + "]");
 
     System.out.println("hasErrors = " + bindingResult.hasErrors());
+    System.out.println("binding error count = " + bindingResult.getErrorCount());
 
     if (bindingResult.hasErrors()) {
-
       System.out.println("============================================================");
-      System.out.println("===== VALIDATION ERRORS =====");
+      System.out.println("===== VALIDATION AND BINDING ERRORS =====");
       System.out.println("============================================================");
 
       bindingResult
@@ -156,17 +144,18 @@ public class SignupViewController {
           .forEach(
               error ->
                   System.out.println(
-                      "ERROR field="
+                      "field="
                           + error.getField()
-                          + " message="
-                          + error.getDefaultMessage()
-                          + " rejectedValue=["
+                          + ", rejectedValue=["
                           + error.getRejectedValue()
-                          + "]"));
+                          + "]"
+                          + ", bindingFailure="
+                          + error.isBindingFailure()
+                          + ", message="
+                          + error.getDefaultMessage()));
     }
 
     model.addAttribute("teacherDto", CreateTeacherDTO.builder().build());
-
     model.addAttribute("activeTab", "student");
 
     if (bindingResult.hasErrors()) {
@@ -174,19 +163,14 @@ public class SignupViewController {
     }
 
     try {
-
       var created = studentService.create(studentDto);
 
       model.addAttribute("successRole", "Student");
-
       model.addAttribute("successMatricule", created.getMatricule());
 
       return "auth/register-success";
-
     } catch (EmailAlreadyUsedException e) {
-
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
-
       return "auth/register";
     }
   }
@@ -202,46 +186,40 @@ public class SignupViewController {
     System.out.println("============================================================");
 
     System.out.println("DTO class = " + teacherDto.getClass().getName());
-
     System.out.println(
         "suppressed fields = " + Arrays.toString(bindingResult.getSuppressedFields()));
 
     model.addAttribute("studentDto", CreateStudentDTO.builder().build());
-
     model.addAttribute("activeTab", "teacher");
 
     if (bindingResult.hasErrors()) {
-
       bindingResult
           .getFieldErrors()
           .forEach(
               error ->
                   System.out.println(
-                      "ERROR field="
+                      "field="
                           + error.getField()
-                          + " message="
-                          + error.getDefaultMessage()
-                          + " rejectedValue=["
+                          + ", rejectedValue=["
                           + error.getRejectedValue()
-                          + "]"));
+                          + "]"
+                          + ", bindingFailure="
+                          + error.isBindingFailure()
+                          + ", message="
+                          + error.getDefaultMessage()));
 
       return "auth/register";
     }
 
     try {
-
       var created = teacherService.create(teacherDto);
 
       model.addAttribute("successRole", "Teacher");
-
       model.addAttribute("successMatricule", created.getMatricule());
 
       return "auth/register-success";
-
     } catch (EmailAlreadyUsedException e) {
-
       model.addAttribute("emailError", "Cet email est déjà utilisé.");
-
       return "auth/register";
     }
   }
