@@ -17,8 +17,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @Slf4j
 public class FacadeIT {
 
-  @Autowired(required = false)
-  private DataSource dataSource;
+  @Autowired private DataSource dataSource;
 
   private JdbcTemplate jdbcTemplateInstance;
 
@@ -43,7 +42,7 @@ public class FacadeIT {
 
   /** Returns a JdbcTemplate instance for database operations */
   protected JdbcTemplate jdbcTemplate() {
-    if (jdbcTemplateInstance == null && dataSource != null) {
+    if (jdbcTemplateInstance == null) {
       jdbcTemplateInstance = new JdbcTemplate(dataSource);
     }
     return jdbcTemplateInstance;
@@ -51,17 +50,15 @@ public class FacadeIT {
 
   /** Cleans the database by clearing all relevant tables */
   protected void cleanDatabase() {
-    if (jdbcTemplate() != null) {
-      jdbcTemplate().update("DELETE FROM grade");
-      jdbcTemplate().update("DELETE FROM exam");
-      jdbcTemplate().update("DELETE FROM course_unit_course");
-      jdbcTemplate().update("DELETE FROM course_unit");
-      jdbcTemplate().update("DELETE FROM course");
-      jdbcTemplate().update("DELETE FROM semester");
-      jdbcTemplate().update("DELETE FROM academic_year");
-      jdbcTemplate().update("DELETE FROM cohort");
-      jdbcTemplate().update("DELETE FROM teacher");
-      jdbcTemplate().update("DELETE FROM student");
-    }
+    jdbcTemplate().update("DELETE FROM grade");
+    jdbcTemplate().update("DELETE FROM exam");
+    jdbcTemplate().update("DELETE FROM course_unit_course");
+    jdbcTemplate().update("DELETE FROM course_unit");
+    jdbcTemplate().update("DELETE FROM course");
+    jdbcTemplate().update("DELETE FROM semester");
+    jdbcTemplate().update("DELETE FROM academic_year");
+    jdbcTemplate().update("DELETE FROM cohort");
+    jdbcTemplate().update("DELETE FROM teacher");
+    jdbcTemplate().update("DELETE FROM student");
   }
 }
